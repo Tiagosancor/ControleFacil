@@ -4,4 +4,5 @@ namespace ControleFacil.Domain.Interfaces;
 
 public interface ITransactionRepository : IRepository<Transaction>
 {
+    IQueryable<Transaction> QueryWithDetails();
 }

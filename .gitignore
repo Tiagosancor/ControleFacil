@@ -19,6 +19,11 @@ node_modules/
 *.log
 npm-debug.log*
 
+# Mobile (Expo)
+mobile/node_modules/
+mobile/.expo/
+mobile/.env
+
 # Editor / OS
 .vscode/
 .idea/
@@ -26,3 +31,4 @@ npm-debug.log*
 
 # Claude Code (config pessoal, não compartilhada)
 .claude/settings.local.json
+mobile/.claude/

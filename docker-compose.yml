@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-controlefacil_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB:-controlefacil_dev};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}"
+      Jwt__Key: ${JWT_KEY:?defina JWT_KEY no .env}
+      Jwt__Issuer: ${JWT_ISSUER:-ControleFacil}
+      Jwt__Audience: ${JWT_AUDIENCE:-ControleFacilUsers}
+      Cors__AllowedOrigins__0: ${CORS_ALLOWED_ORIGIN:-http://localhost:3000}
+    ports:
+      - "5080:8080"
+
+volumes:
+  db-data:

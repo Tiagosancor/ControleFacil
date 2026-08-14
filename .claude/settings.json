@@ -1,0 +1,15 @@
+{
+   "language": "portuguese",
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(dotnet ef *)",
+      "Bash(cp .env.example .env)",
+      "Bash(docker compose *)",
+      "Bash(sed -i 's/POSTGRES_PASSWORD=changeme/POSTGRES_PASSWORD=postgres/' .env)"
+    ]
+  }
+}

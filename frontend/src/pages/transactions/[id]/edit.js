@@ -57,7 +57,7 @@ export default function EditTransactionPage() {
       setPaymentDate(t.paymentDate || '')
       setStatus(t.status)
       setSeriesInfo(t.seriesId ? { seriesId: t.seriesId, installmentNumber: t.installmentNumber, totalInstallments: t.totalInstallments } : null)
-      setCategories(categoriesRes.data.items.filter(c => c.parentCategoryId))
+      setCategories(categoriesRes.data.items)
       setBankAccounts(bankAccountsRes.data.items)
       setLoading(false)
     }).catch(() => {

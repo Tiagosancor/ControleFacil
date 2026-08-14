@@ -38,9 +38,9 @@ export default function NewTransactionPage() {
 
   useEffect(() => {
     categoryService.list({ includeInactive: false, page: 1, pageSize: 200 }).then(res => {
-      const leaves = res.data.items.filter(c => c.parentCategoryId)
-      setCategories(leaves)
-      if (leaves.length) setCategoryId(String(leaves[0].id))
+      const items = res.data.items
+      setCategories(items)
+      if (items.length) setCategoryId(String(items[0].id))
     })
     bankAccountService.list({ includeInactive: false, page: 1, pageSize: 200 }).then(res => {
       setBankAccounts(res.data.items)

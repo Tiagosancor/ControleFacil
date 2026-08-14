@@ -27,6 +27,14 @@ public class ExceptionHandlingMiddleware
         {
             await WriteProblemAsync(context, StatusCodes.Status401Unauthorized, ex.Message);
         }
+        catch (NotFoundException ex)
+        {
+            await WriteProblemAsync(context, StatusCodes.Status404NotFound, ex.Message);
+        }
+        catch (BusinessRuleException ex)
+        {
+            await WriteProblemAsync(context, StatusCodes.Status400BadRequest, ex.Message);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erro não tratado ao processar a requisição");

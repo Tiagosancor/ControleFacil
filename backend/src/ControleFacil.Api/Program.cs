@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using ControleFacil.Api.Endpoints;
 using ControleFacil.Api.Middleware;
+using ControleFacil.Api.Services;
 using ControleFacil.Application;
 using ControleFacil.Application.Interfaces;
 using ControleFacil.Infrastructure;
@@ -16,6 +17,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -110,6 +114,9 @@ app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapAuthEndpoints();
+app.MapCategoryEndpoints();
+app.MapBankAccountEndpoints();
+app.MapTransactionEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

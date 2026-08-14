@@ -5,7 +5,8 @@ App de controle financeiro pessoal, inspirado em uma planilha de orçamento pess
 ## Stack
 
 - **Backend**: ASP.NET Core 8 (Minimal APIs), EF Core, PostgreSQL
-- **Frontend**: Next.js 13 (Pages Router), Tailwind CSS
+- **Frontend Web**: Next.js 13 (Pages Router), Tailwind CSS
+- **Mobile**: React Native + Expo (Expo Router, NativeWind), consumindo a mesma API REST do backend
 - **Arquitetura**: Clean Architecture (Domain / Application / Infrastructure / Api)
 
 ## Estrutura
@@ -27,6 +28,11 @@ frontend/
     contexts/AuthContext.js
     services/                       # authService, categoryService, bankAccountService, transactionService
     lib/api.js                      # instância axios com token JWT
+mobile/
+  app/                              # rotas (Expo Router) — login, register, (app)/{transactions,categories,bank-accounts}
+  components/                       # FormInput, FormSelect, LogoutButton, ui/*
+  contexts/AuthContext.js
+  services/                         # mesmos services do frontend, adaptados (axios + expo-secure-store)
 ```
 
 ## Subindo o ambiente (Sprint A)
@@ -109,6 +115,22 @@ npm run dev
 Sobe em `http://localhost:3000`, apontando para a API em `http://localhost:5000` por padrão (configurável via `NEXT_PUBLIC_API_URL`). Faça login com o usuário de seed acima.
 
 > **Nota de segurança**: o frontend está pinado em Next.js 13 (major exigida pela especificação, Pages Router). Essa linha tem vulnerabilidades conhecidas só corrigidas na v16 (breaking change de stack). Aceitável para este projeto de portfólio/uso local; reavaliar antes de qualquer deploy público.
+
+## Rodando o app mobile
+
+```bash
+cd mobile
+npm install
+cp .env.example .env   # ajuste EXPO_PUBLIC_API_URL se necessário (ver comentários no arquivo)
+npx expo start
+```
+
+Escaneie o QR code com o app **Expo Go** (Android/iOS) ou pressione `a`/`i` para abrir num emulador. Faça login com o usuário de seed acima.
+
+- **Emulador Android**: `localhost` não aponta pra sua máquina — use `http://10.0.2.2:5000` no `.env`.
+- **Dispositivo físico**: use o IP da sua máquina na rede local (ex. `http://192.168.0.10:5000`); o dispositivo precisa estar na mesma rede.
+- **Token JWT**: armazenado via `expo-secure-store` (Keychain no iOS, Keystore no Android) — nunca em `AsyncStorage` puro, conforme exigido na especificação.
+- **Testando via `expo start --web`** (usado para validar este Sprint C sem simulador disponível no ambiente de desenvolvimento): `expo-secure-store` não tem implementação web, então `services/api.js` cai para `localStorage` só nesse alvo — não é o caminho usado em iOS/Android. Além disso, o navegador aplica CORS (que não existe no app nativo real); adicione a origem do Expo web (por padrão `http://localhost:8081`) em `Cors:AllowedOrigins` no seu `appsettings.Development.json` local se for testar assim.
 
 ## Rodando os testes
 

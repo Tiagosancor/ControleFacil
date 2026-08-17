@@ -15,6 +15,17 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// O Render injeta a porta via a variável de ambiente PORT e espera a aplicação
+// escutar nela. UseUrls() tem prioridade sobre ASPNETCORE_URLS e sobre o
+// applicationUrl do launchSettings.json, então só chamamos quando PORT existe de
+// verdade — senão o `dotnet run` local perderia o bind em 0.0.0.0:5000 (necessário
+// pro app mobile alcançar a API pela rede) e cairia sempre em 8080.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+{
+    builder.WebHost.UseUrls($"http://+:{port}");
+}
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 

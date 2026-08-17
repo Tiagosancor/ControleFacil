@@ -1,6 +1,8 @@
 # ControleFacil
 
-App de controle financeiro pessoal, inspirado em uma planilha de orçamento pessoal (plano de contas hierárquico, contas bancárias, lançamentos). Ver especificação completa em [docs/reference/prompt-app-financeiro-pessoal.md](docs/reference/prompt-app-financeiro-pessoal.md).
+App de controle financeiro pessoal, inspirado em uma planilha de orçamento pessoal (plano de contas hierárquico, contas bancárias, lançamentos, dashboard mensal). Ver especificação completa em [docs/reference/prompt-app-financeiro-pessoal.md](docs/reference/prompt-app-financeiro-pessoal.md).
+
+> 🔗 **Versão publicada**: _(pendente — ver [Deploy](#deploy-sprint-e) abaixo)_. Login de demonstração: `teste@controlefacil.com` / `Teste@123`.
 
 ## Stack
 
@@ -139,4 +141,69 @@ cd backend
 dotnet test
 ```
 
-Cobrem: herança do `Type` da subcategoria a partir do grupo pai, limite de 2 níveis de hierarquia, e escopo por usuário (um usuário não acessa/edita/apaga categorias, contas ou lançamentos de outro).
+Cobrem: herança do `Type` da subcategoria a partir do grupo pai, limite de 2 níveis de hierarquia, escopo por usuário, e o cálculo do resumo mensal do dashboard.
+
+## Deploy (Sprint E)
+
+Banco no **Neon** (Postgres serverless), backend na **Render** (Docker), frontend web na **Vercel**. Os três fazem deploy direto do GitHub (push na `main` → redeploy automático), sem precisar de CLI local. Este é um monorepo, então tanto na Render quanto na Vercel é preciso apontar o **Root Directory** do serviço para a pasta certa (`backend` ou `frontend`) — os dois vivem no mesmo repositório.
+
+### 1. Banco de dados (Neon)
+
+1. Crie uma conta em [neon.tech](https://neon.tech) e um projeto Postgres (região São Paulo, por exemplo).
+2. No painel do projeto, pegue a connection string (aba **Connect**). O Neon já gera no formato `postgresql://usuario:senha@host/banco?sslmode=require`, mas o Npgsql (.NET) usa uma sintaxe própria — monte a `ConnectionStrings__DefaultConnection` assim, usando os mesmos valores de host/usuário/senha/banco que o Neon te deu:
+
+   ```
+   Host=<host-do-neon>;Port=5432;Database=<nome-do-banco>;Username=<usuario>;Password=<senha>;SSL Mode=VerifyFull;Channel Binding=Require
+   ```
+
+   `SSL Mode=VerifyFull;Channel Binding=Require` é o nível de segurança que o próprio Neon recomenda para Npgsql (valida certificado e faz channel binding, não só criptografa).
+3. Não precisa criar tabelas manualmente — a API aplica as migrations e roda o seed automaticamente na primeira inicialização (mesma lógica do `dotnet run` local).
+
+### 2. Backend (Render)
+
+.NET não tem runtime nativo (buildpack) na Render — só Node, Python, Ruby, Go, Rust e Elixir têm. O caminho suportado é **Docker**, usando o `backend/Dockerfile` que já existe no repo (multi-stage, testado localmente com `docker build`/`docker run` em modo `Production`). Por isso não há "Build Command"/"Start Command" pra preencher — esses campos só existem pros runtimes nativos; num serviço Docker a Render builda pelo próprio Dockerfile e roda o `ENTRYPOINT` dele.
+
+1. Crie uma conta em [render.com](https://render.com) (dá pra usar login do GitHub) e crie um **Web Service** a partir do repositório `Tiagosancor/ControleFacil`.
+2. Configure:
+
+   | Campo | Valor |
+   |---|---|
+   | Language/Environment | **Docker** |
+   | Root Directory | `backend` |
+   | Dockerfile Path | `Dockerfile` (relativo ao Root Directory) |
+   | Docker Context | `.` |
+   | Instance Type | Free (ou a de sua preferência) |
+
+3. Em **Environment Variables**, defina:
+
+   | Variável | Valor |
+   |---|---|
+   | `ASPNETCORE_ENVIRONMENT` | `Production` |
+   | `ConnectionStrings__DefaultConnection` | a connection string do Neon montada no passo 1 |
+   | `Jwt__Key` | uma string aleatória longa (≥32 caracteres) — **nunca reutilize a de dev** |
+   | `Jwt__Issuer` | `ControleFacil` |
+   | `Jwt__Audience` | `ControleFacilUsers` |
+   | `Cors__AllowedOrigins__0` | a URL da Vercel do passo 3 abaixo (dá pra deixar `http://localhost:3000` por enquanto e ajustar depois) |
+
+   Não defina `PORT` — a Render injeta essa variável sozinha (10000 por padrão) e a API já lê `PORT` automaticamente (com fallback pra 8080 se não existir, usado no `docker-compose` local).
+4. Deploy. A Render expõe a API em algo como `https://controlefacil-api.onrender.com`.
+5. Confirme que subiu: `GET https://<seu-dominio>.onrender.com/health` deve responder `{"status":"ok"}`.
+
+> ⚠️ **Cold start do free tier**: no plano gratuito da Render, o serviço "dorme" depois de ~15 minutos sem tráfego e a próxima requisição leva **até ~1 minuto** pra acordar o container (nada quebrado — só lento na primeira chamada depois de um tempo parado). Se for demonstrar o app ao vivo, abra a API alguns minutos antes ou avise sobre essa demora esperada.
+
+### 3. Frontend web (Vercel)
+
+1. Crie uma conta em [vercel.com](https://vercel.com) (login do GitHub) e importe o mesmo repositório.
+2. Em **Root Directory**, selecione `frontend`. O preset Next.js é detectado automaticamente (não precisa de `vercel.json`).
+3. Em **Environment Variables**, adicione `NEXT_PUBLIC_API_URL` apontando para o domínio da Render (passo 4 acima), ex.: `https://controlefacil-api.onrender.com`.
+4. Deploy. A Vercel gera uma URL do tipo `https://controlefacil.vercel.app`.
+5. Volte na Render e atualize `Cors__AllowedOrigins__0` para essa URL da Vercel (redeploy manual ou automático conforme a configuração do serviço).
+
+### 4. Apontando o mobile para produção (opcional, só pra demonstrar sem backend local rodando)
+
+O `.env` do mobile é só de desenvolvimento (aponta pro IP da sua máquina na rede local) e não deve ser versionado. Pra demonstrar o app mobile usando a API publicada, troque temporariamente `EXPO_PUBLIC_API_URL` no `mobile/.env` para a URL da Render e rode `npx expo start --clear`. Vale lembrar do cold start acima — a primeira chamada pode demorar.
+
+### Depois do primeiro deploy
+
+- Atualize o link no topo deste README com a URL da Vercel.
+- Segredos (`Jwt__Key`, senha do Neon) ficam só nas variáveis de ambiente dos provedores — nunca commitados.

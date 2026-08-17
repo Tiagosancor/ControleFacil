@@ -98,49 +98,54 @@ export default function TransactionsScreen() {
 
   return (
     <View className="flex-1 bg-background px-4 pt-4">
-      <Button variant="primary" onPress={() => router.push('/transactions/new')} className="mb-4">
-        Novo lançamento
-      </Button>
-
-      <Card className="mb-4">
-        <View className="flex-row gap-3">
-          <View className="flex-1">
-            <FormSelect label="Ano" selectedValue={year} onValueChange={setYear}>
-              {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
-                <SelectItem key={y} label={String(y)} value={String(y)} />
-              ))}
-            </FormSelect>
-          </View>
-          <View className="flex-1">
-            <FormSelect label="Mês" selectedValue={month} onValueChange={setMonth}>
-              <SelectItem label="Todos" value="" />
-              {MONTHS.map((m, i) => <SelectItem key={m} label={m} value={String(i + 1)} />)}
-            </FormSelect>
-          </View>
-        </View>
-        <FormSelect label="Categoria" selectedValue={categoryId} onValueChange={setCategoryId}>
-          <SelectItem label="Todas" value="" />
-          {categories.map(c => <SelectItem key={c.id} label={c.name} value={String(c.id)} />)}
-        </FormSelect>
-        <FormSelect label="Conta" selectedValue={bankAccountId} onValueChange={setBankAccountId}>
-          <SelectItem label="Todas" value="" />
-          {bankAccounts.map(b => <SelectItem key={b.id} label={b.name} value={String(b.id)} />)}
-        </FormSelect>
-        <FormSelect label="Status" selectedValue={status} onValueChange={setStatus}>
-          <SelectItem label="Todos" value="" />
-          <SelectItem label="Não pago" value="Pending" />
-          <SelectItem label="Pago" value="Paid" />
-        </FormSelect>
-      </Card>
-
-      {!loading && <Text className="text-sm text-text-secondary mb-3">{total} lançamento(s)</Text>}
-
       <FlatList
+        className="flex-1"
         data={items}
         keyExtractor={(item) => String(item.id)}
         refreshing={loading}
         onRefresh={load}
         ItemSeparatorComponent={() => <View className="h-2" />}
+        contentContainerClassName="pb-8"
+        ListHeaderComponent={(
+          <View>
+            <Button variant="primary" onPress={() => router.push('/transactions/new')} className="mb-4">
+              Novo lançamento
+            </Button>
+
+            <Card className="mb-4">
+              <View className="flex-row gap-3">
+                <View className="flex-1">
+                  <FormSelect label="Ano" selectedValue={year} onValueChange={setYear}>
+                    {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
+                      <SelectItem key={y} label={String(y)} value={String(y)} />
+                    ))}
+                  </FormSelect>
+                </View>
+                <View className="flex-1">
+                  <FormSelect label="Mês" selectedValue={month} onValueChange={setMonth}>
+                    <SelectItem label="Todos" value="" />
+                    {MONTHS.map((m, i) => <SelectItem key={m} label={m} value={String(i + 1)} />)}
+                  </FormSelect>
+                </View>
+              </View>
+              <FormSelect label="Categoria" selectedValue={categoryId} onValueChange={setCategoryId}>
+                <SelectItem label="Todas" value="" />
+                {categories.map(c => <SelectItem key={c.id} label={c.name} value={String(c.id)} />)}
+              </FormSelect>
+              <FormSelect label="Conta" selectedValue={bankAccountId} onValueChange={setBankAccountId}>
+                <SelectItem label="Todas" value="" />
+                {bankAccounts.map(b => <SelectItem key={b.id} label={b.name} value={String(b.id)} />)}
+              </FormSelect>
+              <FormSelect label="Status" selectedValue={status} onValueChange={setStatus}>
+                <SelectItem label="Todos" value="" />
+                <SelectItem label="Não pago" value="Pending" />
+                <SelectItem label="Pago" value="Paid" />
+              </FormSelect>
+            </Card>
+
+            {!loading && <Text className="text-sm text-text-secondary mb-3">{total} lançamento(s)</Text>}
+          </View>
+        )}
         ListEmptyComponent={!loading && (
           <Text className="text-sm text-text-secondary text-center mt-8">Nenhum lançamento encontrado.</Text>
         )}

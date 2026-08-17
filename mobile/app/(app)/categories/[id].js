@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Switch, Text, View } from 'react-native';
+import { Alert, ScrollView, Switch, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { categoryService } from '@/services/categoryService';
 import FormInput from '@/components/FormInput';
@@ -84,7 +84,11 @@ export default function EditCategoryScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background px-4 pt-4">
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerClassName="px-4 pt-4 pb-8"
+      keyboardShouldPersistTaps="handled"
+    >
       <Card>
         <FormInput label="Nome" value={name} onChangeText={setName} error={errors.name} />
 
@@ -118,6 +122,6 @@ export default function EditCategoryScreen() {
           </Button>
         </View>
       </Card>
-    </View>
+    </ScrollView>
   );
 }

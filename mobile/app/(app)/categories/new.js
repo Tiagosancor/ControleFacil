@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { categoryService } from '@/services/categoryService';
 import FormInput from '@/components/FormInput';
@@ -44,7 +44,11 @@ export default function NewCategoryScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background px-4 pt-4">
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerClassName="px-4 pt-4 pb-8"
+      keyboardShouldPersistTaps="handled"
+    >
       <Card>
         <FormInput label="Nome" value={name} onChangeText={setName} error={errors.name} />
 
@@ -68,6 +72,6 @@ export default function NewCategoryScreen() {
           {submitting ? 'Criando...' : 'Criar categoria'}
         </Button>
       </Card>
-    </View>
+    </ScrollView>
   );
 }

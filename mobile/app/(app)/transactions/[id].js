@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { transactionService } from '@/services/transactionService';
 import { categoryService } from '@/services/categoryService';
@@ -130,7 +130,11 @@ export default function EditTransactionScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background px-4 pt-4">
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerClassName="px-4 pt-4 pb-8"
+      keyboardShouldPersistTaps="handled"
+    >
       <Card>
         {seriesInfo && (
           <View className="bg-background border border-border rounded-md px-3 py-2 mb-4">
@@ -179,6 +183,6 @@ export default function EditTransactionScreen() {
           </Button>
         )}
       </Card>
-    </View>
+    </ScrollView>
   );
 }

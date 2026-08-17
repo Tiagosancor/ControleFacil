@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { transactionService } from '@/services/transactionService';
 import { categoryService } from '@/services/categoryService';
@@ -85,7 +85,11 @@ export default function NewTransactionScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background px-4 pt-4">
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerClassName="px-4 pt-4 pb-8"
+      keyboardShouldPersistTaps="handled"
+    >
       <Card>
         <FormInput
           label="Data do lançamento (AAAA-MM-DD)"
@@ -134,6 +138,6 @@ export default function NewTransactionScreen() {
           {submitting ? 'Criando...' : 'Criar lançamento'}
         </Button>
       </Card>
-    </View>
+    </ScrollView>
   );
 }

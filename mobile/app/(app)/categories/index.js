@@ -37,11 +37,13 @@ export default function CategoriesScreen() {
       </View>
 
       <FlatList
+        className="flex-1"
         data={items}
         keyExtractor={(item) => String(item.id)}
         refreshing={loading}
         onRefresh={load}
         ItemSeparatorComponent={() => <View className="h-2" />}
+        contentContainerClassName="pb-8"
         ListEmptyComponent={!loading && (
           <Text className="text-sm text-text-secondary text-center mt-8">Nenhuma categoria encontrada.</Text>
         )}

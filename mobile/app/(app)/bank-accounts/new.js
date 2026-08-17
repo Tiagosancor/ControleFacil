@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { bankAccountService } from '@/services/bankAccountService';
 import FormInput from '@/components/FormInput';
@@ -28,7 +28,11 @@ export default function NewBankAccountScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background px-4 pt-4">
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerClassName="px-4 pt-4 pb-8"
+      keyboardShouldPersistTaps="handled"
+    >
       <Card>
         <FormInput label="Nome" value={name} onChangeText={setName} error={errors.name} />
         <FormInput
@@ -42,6 +46,6 @@ export default function NewBankAccountScreen() {
           {submitting ? 'Criando...' : 'Criar conta'}
         </Button>
       </Card>
-    </View>
+    </ScrollView>
   );
 }

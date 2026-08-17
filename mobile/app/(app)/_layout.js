@@ -17,6 +17,7 @@ export default function AppTabsLayout() {
 
   return (
     <Tabs screenOptions={{ tabBarActiveTintColor: '#185FA5', headerShown: false }}>
+      <Tabs.Screen name="dashboard" options={{ title: 'Dashboard' }} />
       <Tabs.Screen name="transactions" options={{ title: 'Lançamentos' }} />
       <Tabs.Screen name="categories" options={{ title: 'Categorias' }} />
       <Tabs.Screen name="bank-accounts" options={{ title: 'Contas' }} />

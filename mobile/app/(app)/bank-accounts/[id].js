@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Alert, Switch, Text, View } from 'react-native';
+import { Alert, ScrollView, Switch, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { bankAccountService } from '@/services/bankAccountService';
 import FormInput from '@/components/FormInput';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+
+function formatCurrency(value) {
+  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
 
 export default function EditBankAccountScreen() {
   const { id } = useLocalSearchParams();
@@ -12,6 +16,7 @@ export default function EditBankAccountScreen() {
 
   const [name, setName] = useState('');
   const [initialBalance, setInitialBalance] = useState('0');
+  const [currentBalance, setCurrentBalance] = useState(0);
   const [isActive, setIsActive] = useState(true);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
@@ -22,6 +27,7 @@ export default function EditBankAccountScreen() {
     bankAccountService.getById(id).then(res => {
       setName(res.data.name);
       setInitialBalance(String(res.data.initialBalance));
+      setCurrentBalance(res.data.currentBalance);
       setIsActive(res.data.isActive);
       setLoading(false);
     }).catch(() => {
@@ -67,9 +73,17 @@ export default function EditBankAccountScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background px-4 pt-4">
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerClassName="px-4 pt-4 pb-8"
+      keyboardShouldPersistTaps="handled"
+    >
       <Card>
         <FormInput label="Nome" value={name} onChangeText={setName} error={errors.name} />
+        <View className="bg-background border border-border rounded-md px-3 py-2 mb-4">
+          <Text className="text-xs text-text-secondary">Saldo atual (inicial + lançamentos pagos)</Text>
+          <Text className="text-text-primary font-medium">{formatCurrency(currentBalance)}</Text>
+        </View>
         <FormInput
           label="Saldo inicial"
           value={initialBalance}
@@ -90,6 +104,6 @@ export default function EditBankAccountScreen() {
           </Button>
         </View>
       </Card>
-    </View>
+    </ScrollView>
   );
 }

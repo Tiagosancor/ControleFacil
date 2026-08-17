@@ -41,11 +41,13 @@ export default function BankAccountsScreen() {
       </View>
 
       <FlatList
+        className="flex-1"
         data={items}
         keyExtractor={(item) => String(item.id)}
         refreshing={loading}
         onRefresh={load}
         ItemSeparatorComponent={() => <View className="h-2" />}
+        contentContainerClassName="pb-8"
         ListEmptyComponent={!loading && (
           <Text className="text-sm text-text-secondary text-center mt-8">Nenhuma conta encontrada.</Text>
         )}
@@ -54,8 +56,9 @@ export default function BankAccountsScreen() {
             <Card>
               <View className="flex-row justify-between items-center">
                 <Text className="text-text-primary font-medium">{item.name}</Text>
-                <Text className="text-text-secondary">{formatCurrency(item.initialBalance)}</Text>
+                <Text className="text-text-primary font-medium">{formatCurrency(item.currentBalance)}</Text>
               </View>
+              <Text className="text-text-secondary text-xs mt-1">Saldo inicial: {formatCurrency(item.initialBalance)}</Text>
               {!item.isActive && <Text className="text-text-muted text-xs mt-1">Inativa</Text>}
             </Card>
           </Pressable>

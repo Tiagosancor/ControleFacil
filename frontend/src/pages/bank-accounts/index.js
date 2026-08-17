@@ -48,6 +48,7 @@ export default function BankAccountsPage() {
             <tr className="text-xs text-text-secondary uppercase border-b border-border">
               <th className="text-left p-3">Nome</th>
               <th className="text-left p-3">Saldo inicial</th>
+              <th className="text-left p-3">Saldo atual</th>
               <th className="text-left p-3">Status</th>
               <th className="text-left p-3"></th>
             </tr>
@@ -57,6 +58,7 @@ export default function BankAccountsPage() {
               <tr key={account.id} className="border-b border-border hover:bg-background">
                 <td className="p-3">{account.name}</td>
                 <td className="p-3">{formatCurrency(account.initialBalance)}</td>
+                <td className="p-3 font-medium">{formatCurrency(account.currentBalance)}</td>
                 <td className="p-3">{account.isActive ? 'Ativa' : 'Inativa'}</td>
                 <td className="p-3">
                   <Link href={`/bank-accounts/${account.id}/edit`} className="text-accent">Editar</Link>

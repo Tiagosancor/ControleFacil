@@ -6,12 +6,17 @@ import FormInput from '@/components/FormInput'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 
+function formatCurrency(value) {
+  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
 export default function EditBankAccountPage() {
   const router = useRouter()
   const { id } = router.query
 
   const [name, setName] = useState('')
   const [initialBalance, setInitialBalance] = useState('0')
+  const [currentBalance, setCurrentBalance] = useState(0)
   const [isActive, setIsActive] = useState(true)
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(true)
@@ -21,6 +26,7 @@ export default function EditBankAccountPage() {
     bankAccountService.getById(id).then(res => {
       setName(res.data.name)
       setInitialBalance(String(res.data.initialBalance))
+      setCurrentBalance(res.data.currentBalance)
       setIsActive(res.data.isActive)
       setLoading(false)
     }).catch(() => {
@@ -55,6 +61,10 @@ export default function EditBankAccountPage() {
       <Card className="max-w-lg">
         <form onSubmit={submit}>
           <FormInput label="Nome" value={name} onChange={setName} error={errors.name} />
+          <div className="bg-background border border-border rounded-md px-3 py-2 mb-4">
+            <p className="text-xs text-text-secondary">Saldo atual (inicial + lançamentos pagos)</p>
+            <p className="font-medium">{formatCurrency(currentBalance)}</p>
+          </div>
           <FormInput
             label="Saldo inicial"
             type="number"

@@ -2,6 +2,7 @@ using ControleFacil.Application.Dtos;
 using ControleFacil.Application.Exceptions;
 using ControleFacil.Application.Interfaces;
 using ControleFacil.Domain.Entities;
+using ControleFacil.Domain.Enums;
 using ControleFacil.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,13 +32,17 @@ public class BankAccountService : IBankAccountService
             .Take(pageSize)
             .ToListAsync();
 
-        return new PagedResultDto<BankAccountResponseDto>(total, page, pageSize, items.Select(ToDto).ToList());
+        var deltas = await GetPaidDeltasAsync(items.Select(b => b.Id));
+        return new PagedResultDto<BankAccountResponseDto>(
+            total, page, pageSize,
+            items.Select(b => ToDto(b, deltas.GetValueOrDefault(b.Id, 0m))).ToList());
     }
 
     public async Task<BankAccountResponseDto> GetByIdAsync(int id)
     {
         var bankAccount = await GetOwnedAsync(id);
-        return ToDto(bankAccount);
+        var delta = await GetPaidDeltaAsync(id);
+        return ToDto(bankAccount, delta);
     }
 
     public async Task<BankAccountResponseDto> CreateAsync(BankAccountCreateDto dto)
@@ -53,7 +58,7 @@ public class BankAccountService : IBankAccountService
         await _unitOfWork.BankAccounts.AddAsync(bankAccount);
         await _unitOfWork.SaveChangesAsync();
 
-        return ToDto(bankAccount);
+        return ToDto(bankAccount, 0m);
     }
 
     public async Task<BankAccountResponseDto> UpdateAsync(int id, BankAccountUpdateDto dto)
@@ -67,7 +72,8 @@ public class BankAccountService : IBankAccountService
         _unitOfWork.BankAccounts.Update(bankAccount);
         await _unitOfWork.SaveChangesAsync();
 
-        return ToDto(bankAccount);
+        var delta = await GetPaidDeltaAsync(id);
+        return ToDto(bankAccount, delta);
     }
 
     public async Task DeleteAsync(int id)
@@ -86,5 +92,31 @@ public class BankAccountService : IBankAccountService
         return bankAccount ?? throw new NotFoundException("Conta bancária não encontrada.");
     }
 
-    private static BankAccountResponseDto ToDto(BankAccount b) => new(b.Id, b.Name, b.InitialBalance, b.IsActive);
+    // Saldo atual = saldo inicial + lançamentos já pagos (receitas somam, despesas subtraem).
+    // Lançamentos "Pendente" ainda não afetaram o extrato bancário real, por isso ficam de fora.
+    private async Task<decimal> GetPaidDeltaAsync(int bankAccountId)
+    {
+        return await _unitOfWork.Transactions.Query()
+            .Where(t => t.BankAccountId == bankAccountId && t.UserId == _currentUser.UserId && t.Status == TransactionStatus.Paid)
+            .Select(t => t.Category!.Type == CategoryType.Income ? t.Amount : -t.Amount)
+            .SumAsync();
+    }
+
+    private async Task<Dictionary<int, decimal>> GetPaidDeltasAsync(IEnumerable<int> bankAccountIds)
+    {
+        var idList = bankAccountIds.ToList();
+        if (idList.Count == 0) return new Dictionary<int, decimal>();
+
+        var rows = await _unitOfWork.Transactions.Query()
+            .Where(t => idList.Contains(t.BankAccountId) && t.UserId == _currentUser.UserId && t.Status == TransactionStatus.Paid)
+            .Select(t => new { t.BankAccountId, Signed = t.Category!.Type == CategoryType.Income ? t.Amount : -t.Amount })
+            .ToListAsync();
+
+        return rows
+            .GroupBy(r => r.BankAccountId)
+            .ToDictionary(g => g.Key, g => g.Sum(r => r.Signed));
+    }
+
+    private static BankAccountResponseDto ToDto(BankAccount b, decimal paidDelta) =>
+        new(b.Id, b.Name, b.InitialBalance, b.InitialBalance + paidDelta, b.IsActive);
 }

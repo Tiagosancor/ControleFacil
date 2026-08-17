@@ -21,33 +21,40 @@ Este é um projeto pessoal de portfólio, construído com o mesmo padrão de qua
 
 ---
 
-## 3. Escopo desta fase (fazer AGORA)
+## 3. Escopo e status das sprints
 
-Nesta fase, implementar **apenas**:
+### Concluídas e validadas (não retrabalhar sem motivo explícito)
 
-1. **Sprint A — Schema**: modelagem completa do banco de dados (entidades abaixo), migrations do EF Core, seed mínimo de dados de exemplo.
-2. **Sprint B — Núcleo**: endpoints (Minimal API) + páginas Next.js para CRUD de:
-   - Contas do plano de contas (categorias hierárquicas de receita/despesa)
-   - Contas bancárias
-   - Lançamentos (transações)
+1. **Sprint A — Schema**: modelagem do banco de dados, migrations do EF Core, seed de dados de exemplo. ✅ Concluída.
+2. **Sprint B — Núcleo**: endpoints (Minimal API) + páginas Next.js para CRUD de categorias, contas bancárias e lançamentos, com autenticação JWT e escopo por usuário. ✅ Concluída e validada manualmente (isolamento entre usuários testado, inclusive tentativa de acesso direto por ID).
+3. **Sprint C — Mobile (React Native/Expo)**: app mobile consumindo a mesma API, autenticação com `expo-secure-store`, CRUD do núcleo replicado. ✅ Concluída.
 
-**Fora de escopo nesta fase** (não implementar ainda, apenas deixar o schema preparado para não exigir migração destrutiva depois):
-- Dashboard com gráficos
-- Metas de longo prazo (`CF_LP` da planilha)
-- Investimentos (`CF_inv`)
+### Próximas sprints (fazer AGORA, na ordem)
+
+**Sprint D — Dashboard (resumo mensal)**
+- Endpoint(s) de agregação: total de receitas, total de despesas e saldo do mês (filtrando `Transaction` por `UserId` + mês/ano).
+- Um agrupamento por categoria (quanto foi gasto em cada grupo no mês), para gráfico de pizza/barras.
+- Página web (`/dashboard` no Next.js) com os números-resumo e ao menos um gráfico (biblioteca a critério do agente — ex: Recharts, Chart.js).
+- Não é necessário replicar o dashboard no mobile nesta sprint — pode ficar só no web por enquanto.
+- Reaproveitar os DTOs já existentes de `Transaction`/`Category` sempre que possível; criar um DTO de resposta dedicado ao dashboard (ex: `MonthlySummaryDto`) em vez de forçar os DTOs de CRUD a carregar dados agregados.
+
+**Sprint E — Deploy**
+- Publicar o backend (API + Postgres) em um provedor gratuito/baixo custo — Railway ou Azure (App Service + Azure Database for PostgreSQL), a critério do agente conforme facilidade de configuração.
+- Publicar o frontend web (Next.js) — Vercel é a opção mais direta para Next.js, mas Railway também serve.
+- Configurar variáveis de ambiente de produção (connection string, JWT secret) diretamente no provedor — nunca commitadas.
+- Ajustar CORS da API para aceitar a origem de produção do frontend.
+- Atualizar o `README.md` com o link da versão publicada e instruções de deploy.
+- Confirmar que o app mobile aponta para a URL de produção da API quando fizer sentido demonstrar (pode manter um `.env` separado para apontar ao ambiente local em dev).
+
+### Backlog (não iniciar sem decisão explícita futura)
+
+Documentado aqui só para não perder o contexto do que existe na planilha original — **não implementar** enquanto não houver uma nova instrução explícita priorizando algum destes itens:
+- Metas de longo prazo (`CF_LP` da planilha) — objetivos com cálculo de aporte mensal necessário
+- Investimentos (`CF_inv`) — acompanhamento mensal por categoria de bem
 - Controle de faturas por cartão (`CF_fat`)
-- Relatórios (DRE, contas a pagar/receber)
-- **App mobile** (ver Sprint C abaixo — só começa depois que o Sprint B estiver validado)
+- Relatórios (DRE, contas a pagar/receber — abas `REL_*`)
 
-Se você (agente) perceber que alguma decisão de schema nesta fase vai dificultar essas features futuras, pode ajustar — mas registre a decisão em um comentário no código ou no PR.
-
-### Sprint C — Mobile (React Native/Expo) — só depois do Sprint B validado
-
-Não iniciar esta sprint sem confirmação explícita de que o Sprint B (web) está funcionando e validado. Quando chegar a vez:
-- O app mobile consome a **mesma API** do Sprint B, sem endpoint dedicado.
-- Reaproveitar as DTOs/contratos já existentes — se algo precisar mudar na API pra atender o mobile, é sinal de que o contrato do Sprint B não estava "client-agnostic" (ver regra na seção 5) e deve ser corrigido com cuidado, avaliando impacto no web.
-- Autenticação: mesmo fluxo JWT do backend; no mobile, armazenar o token em local seguro (ex: `expo-secure-store`), nunca em `AsyncStorage` puro.
-- Escopo funcional do mobile nesta primeira leva: as mesmas telas do núcleo (contas, bancos, lançamentos) — não adiantar dashboard/metas/investimentos no mobile antes de existirem no web.
+Se, ao implementar o Dashboard (Sprint D), você perceber que alguma decisão de schema vai dificultar esses itens do backlog no futuro, pode ajustar — mas registre a decisão em comentário no código ou no PR.
 
 ---
 
@@ -165,17 +172,33 @@ Regras:
 
 ---
 
-## 8. Definition of Done (Sprint A + B)
+## 8. Definition of Done
 
-Considerar esta fase concluída quando:
+### Sprint A + B + C — ✅ já cumprido (referência histórica)
 
-- [ ] Migrations do EF Core criam todas as tabelas (`Users`, `Categories`, `BankAccounts`, `Transactions`) sem erro
-- [ ] Seed popula pelo menos: 1 usuário de teste, categorias raiz de receita/despesa espelhando os grupos da planilha (Renda Familiar, Despesas com Moradia, Alimentação, Saúde, Transporte, Lazer, etc.), 2-3 contas bancárias de exemplo
-- [ ] Endpoints CRUD completos (GET listagem com paginação, GET por id, POST, PUT, DELETE) para `Category`, `BankAccount` e `Transaction`, todos autenticados e escopados por usuário
-- [ ] Validação de entrada funcionando (testar payload inválido retorna 400 com mensagem clara)
-- [ ] Testes xUnit cobrindo pelo menos: regra de categoria filha herdar o `Type` do pai, e escopo por usuário (usuário A não consegue ver/editar dado do usuário B)
-- [ ] Páginas Next.js: listagem + criação + edição para Categorias, Contas Bancárias e Lançamentos (pode reaproveitar padrão visual do módulo de Clientes do ImobiCrm)
-- [ ] `README.md` do projeto documentando como subir o ambiente (Docker Compose) e rodar migrations
+- [x] Migrations do EF Core criam todas as tabelas sem erro
+- [x] Seed popula usuário de teste, plano de contas completo, contas bancárias de exemplo
+- [x] Endpoints CRUD completos, autenticados e escopados por usuário
+- [x] Validação de entrada funcionando
+- [x] Testes xUnit passando
+- [x] Páginas Next.js de Categorias, Contas Bancárias e Lançamentos
+- [x] App mobile (Expo) replicando o núcleo, autenticação com token seguro
+- [x] Isolamento por usuário validado manualmente (web e mobile)
+
+### Sprint D — Dashboard
+
+- [ ] Endpoint de resumo mensal (receita, despesa, saldo) escopado por usuário
+- [ ] Endpoint (ou mesmo endpoint) com agrupamento por categoria
+- [ ] Página `/dashboard` no Next.js exibindo os números e ao menos um gráfico
+- [ ] Testado com dados reais dos usuários já criados nas sprints anteriores
+
+### Sprint E — Deploy
+
+- [ ] Backend publicado e acessível publicamente via HTTPS
+- [ ] Frontend web publicado e acessível publicamente
+- [ ] Variáveis de ambiente de produção configuradas fora do repositório
+- [ ] CORS ajustado para a origem de produção
+- [ ] README atualizado com o link da versão publicada
 - [ ] Nenhum segredo commitado no repositório
 
 ---

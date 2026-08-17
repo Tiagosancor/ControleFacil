@@ -9,6 +9,7 @@ export default function AppLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const links = [
+    { href: '/dashboard', label: 'Dashboard' },
     { href: '/transactions', label: 'Lançamentos' },
     { href: '/categories', label: 'Categorias' },
     { href: '/bank-accounts', label: 'Contas Bancárias' },

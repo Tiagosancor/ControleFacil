@@ -117,6 +117,7 @@ app.MapAuthEndpoints();
 app.MapCategoryEndpoints();
 app.MapBankAccountEndpoints();
 app.MapTransactionEndpoints();
+app.MapDashboardEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {

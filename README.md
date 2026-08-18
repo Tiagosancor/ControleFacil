@@ -1,6 +1,6 @@
 # ControleFacil
 
-App de controle financeiro pessoal, inspirado em uma planilha de orçamento pessoal (plano de contas hierárquico, contas bancárias, lançamentos, dashboard mensal). Ver especificação completa em [docs/reference/prompt-app-financeiro-pessoal.md](docs/reference/prompt-app-financeiro-pessoal.md).
+App de controle financeiro pessoal, inspirado em uma planilha de orçamento pessoal (plano de contas hierárquico, contas bancárias, lançamentos, dashboard mensal).
 
 > 🔗 **Versão publicada**: _(pendente — ver [Deploy](#deploy-sprint-e) abaixo)_. Login de demonstração: `teste@controlefacil.com` / `Teste@123`.
 

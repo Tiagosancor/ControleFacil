@@ -30,5 +30,8 @@ mobile/.env
 .DS_Store
 
 # Claude Code (config pessoal, não compartilhada)
-.claude/settings.local.json
+.claude/
 mobile/.claude/
+
+# Documentação interna de planejamento (não pública)
+docs/

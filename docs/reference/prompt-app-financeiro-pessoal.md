@@ -28,23 +28,23 @@ Este é um projeto pessoal de portfólio, construído com o mesmo padrão de qua
 1. **Sprint A — Schema**: modelagem do banco de dados, migrations do EF Core, seed de dados de exemplo. ✅ Concluída.
 2. **Sprint B — Núcleo**: endpoints (Minimal API) + páginas Next.js para CRUD de categorias, contas bancárias e lançamentos, com autenticação JWT e escopo por usuário. ✅ Concluída e validada manualmente (isolamento entre usuários testado, inclusive tentativa de acesso direto por ID).
 3. **Sprint C — Mobile (React Native/Expo)**: app mobile consumindo a mesma API, autenticação com `expo-secure-store`, CRUD do núcleo replicado. ✅ Concluída.
+4. **Sprint D — Dashboard (resumo mensal)**: endpoint de agregação (receita/despesa/saldo do mês + agrupamento por categoria), página `/dashboard` com gráfico. ✅ Concluída. *(Nota: foi implementada antes da Sprint D.1, fora da ordem original do prompt — D.1 continua pendente e deve cobrir a página do dashboard também, não só as telas anteriores.)*
+5. **Sprint E — Deploy**: backend no Render (`https://controlefacil.onrender.com`), banco no Neon (Postgres 17, região São Paulo), frontend na Vercel (`https://controle-facil-alpha.vercel.app`). ✅ Concluída e validada manualmente (registro, login, CRUD completo e persistência testados em produção).
 
-### Próximas sprints (fazer AGORA, na ordem)
+### Próxima sprint (fazer AGORA)
 
-**Sprint D — Dashboard (resumo mensal)**
-- Endpoint(s) de agregação: total de receitas, total de despesas e saldo do mês (filtrando `Transaction` por `UserId` + mês/ano).
-- Um agrupamento por categoria (quanto foi gasto em cada grupo no mês), para gráfico de pizza/barras.
-- Página web (`/dashboard` no Next.js) com os números-resumo e ao menos um gráfico (biblioteca a critério do agente — ex: Recharts, Chart.js).
-- Não é necessário replicar o dashboard no mobile nesta sprint — pode ficar só no web por enquanto.
-- Reaproveitar os DTOs já existentes de `Transaction`/`Category` sempre que possível; criar um DTO de resposta dedicado ao dashboard (ex: `MonthlySummaryDto`) em vez de forçar os DTOs de CRUD a carregar dados agregados.
-
-**Sprint E — Deploy**
-- Publicar o backend (API + Postgres) em um provedor gratuito/baixo custo — Railway ou Azure (App Service + Azure Database for PostgreSQL), a critério do agente conforme facilidade de configuração.
-- Publicar o frontend web (Next.js) — Vercel é a opção mais direta para Next.js, mas Railway também serve.
-- Configurar variáveis de ambiente de produção (connection string, JWT secret) diretamente no provedor — nunca commitadas.
-- Ajustar CORS da API para aceitar a origem de produção do frontend.
-- Atualizar o `README.md` com o link da versão publicada e instruções de deploy.
-- Confirmar que o app mobile aponta para a URL de produção da API quando fizer sentido demonstrar (pode manter um `.env` separado para apontar ao ambiente local em dev).
+**Sprint D.1 — Responsividade mobile e loading states do frontend web**
+- Cobre **todas** as páginas existentes, incluindo o `/dashboard` que acabou de ser implementado na Sprint D (fora de ordem — foi implementado antes desta sprint, então também precisa passar por esta revisão).
+- As páginas já existentes (login, cadastro, categorias, contas bancárias, lançamentos) não estão responsivas em telas pequenas — validado testando no navegador de um celular físico.
+- Revisar todas as páginas existentes usando classes responsivas do Tailwind (`sm:`, `md:`, `lg:`), com **375px de largura como referência mínima** de teste (tamanho comum de tela de celular).
+- Confirmar que existe a meta tag de viewport correta (`width=device-width, initial-scale=1`) em `_document.js` ou `_app.js`.
+- Atenção especial a: tabelas de listagem (Lançamentos principalmente, que tem muitas colunas — considerar layout de cards em telas pequenas em vez de tabela horizontal), formulários de criação/edição (inputs não podem ultrapassar a largura da tela), e a página de login/cadastro.
+- Testar redimensionando a janela do navegador ou usando o modo de dispositivo do DevTools (F12 → device toolbar) simulando um iPhone/Android padrão, antes de considerar concluído.
+- **Loading state entre navegações**: hoje a troca de página (ex: Categorias → Lançamentos, ou submit de formulário) não dá nenhum feedback visual enquanto os dados carregam, o que parece travamento. Implementar:
+  - Um indicador de carregamento global de navegação entre rotas do Next.js (ex: usando os eventos `routeChangeStart`/`routeChangeComplete` do `next/router` para mostrar uma barra de progresso no topo, ou um spinner simples).
+  - Estado de loading local em cada página que busca dados da API (listagens e formulários), desabilitando botões de submit durante a requisição e mostrando um indicador (skeleton ou spinner) em vez de tela vazia/quebrada enquanto os dados não chegam.
+  - Isso vale tanto para requisições rápidas (evita "flash" de conteúdo vazio) quanto para quando a API estiver com cold start em produção no Render (onde a demora é perceptível, então o feedback visual é ainda mais importante).
+- Isso é ajuste de UI apenas — não deve alterar nenhum contrato de API nem lógica de negócio.
 
 ### Backlog (não iniciar sem decisão explícita futura)
 
@@ -174,7 +174,7 @@ Regras:
 
 ## 8. Definition of Done
 
-### Sprint A + B + C — ✅ já cumprido (referência histórica)
+### Sprint A + B + C + D + E — ✅ já cumprido (referência histórica)
 
 - [x] Migrations do EF Core criam todas as tabelas sem erro
 - [x] Seed popula usuário de teste, plano de contas completo, contas bancárias de exemplo
@@ -184,22 +184,23 @@ Regras:
 - [x] Páginas Next.js de Categorias, Contas Bancárias e Lançamentos
 - [x] App mobile (Expo) replicando o núcleo, autenticação com token seguro
 - [x] Isolamento por usuário validado manualmente (web e mobile)
+- [x] Endpoint de resumo mensal + agrupamento por categoria
+- [x] Página `/dashboard` com gráfico
+- [x] Backend publicado no Render, banco no Neon, frontend na Vercel — todos acessíveis via HTTPS
+- [x] Variáveis de ambiente de produção configuradas fora do repositório
+- [x] CORS ajustado para a origem de produção
+- [x] Fluxo completo testado em produção (registro, login, CRUD, persistência)
 
-### Sprint D — Dashboard
+### Sprint D.1 — Responsividade e Loading States (pendente)
 
-- [ ] Endpoint de resumo mensal (receita, despesa, saldo) escopado por usuário
-- [ ] Endpoint (ou mesmo endpoint) com agrupamento por categoria
-- [ ] Página `/dashboard` no Next.js exibindo os números e ao menos um gráfico
-- [ ] Testado com dados reais dos usuários já criados nas sprints anteriores
-
-### Sprint E — Deploy
-
-- [ ] Backend publicado e acessível publicamente via HTTPS
-- [ ] Frontend web publicado e acessível publicamente
-- [ ] Variáveis de ambiente de produção configuradas fora do repositório
-- [ ] CORS ajustado para a origem de produção
-- [ ] README atualizado com o link da versão publicada
-- [ ] Nenhum segredo commitado no repositório
+- [ ] Todas as páginas existentes (login, cadastro, categorias, contas bancárias, lançamentos, **dashboard**) testadas em viewport de 375px sem quebra de layout, texto cortado ou scroll horizontal indevido
+- [ ] Meta tag de viewport confirmada
+- [ ] Tabela de Lançamentos legível/utilizável em tela pequena (cards ou scroll horizontal controlado, não simplesmente cortada)
+- [ ] Formulários utilizáveis em tela pequena (inputs não ultrapassam a largura da tela, botões acessíveis sem zoom)
+- [ ] Indicador de progresso/loading visível durante navegação entre páginas (ex: barra de progresso no topo)
+- [ ] Toda página que busca dados da API mostra estado de loading (spinner/skeleton) em vez de tela vazia enquanto aguarda resposta
+- [ ] Botões de submit desabilitados durante requisições em andamento (evita duplo clique/duplo submit)
+- [ ] Testado em pelo menos um navegador mobile real, não só no DevTools
 
 ---
 

@@ -10,4 +10,5 @@ public record MonthlySummaryDto(
     decimal TotalIncome,
     decimal TotalExpense,
     decimal Balance,
+    decimal TotalBalance,
     IReadOnlyList<CategoryBreakdownDto> CategoryBreakdown);

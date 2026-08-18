@@ -141,6 +141,10 @@ export default function DashboardPage() {
 
       {loading && (
         <>
+          <Card className="mb-6">
+            <Skeleton className="h-4 w-32 mb-2" />
+            <Skeleton className="h-8 w-40" />
+          </Card>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {Array.from({ length: 3 }).map((_, i) => (
               <Card key={i}>
@@ -158,6 +162,17 @@ export default function DashboardPage() {
 
       {!loading && summary && (
         <>
+          <Card className="mb-6">
+            <p className="text-sm text-text-secondary mb-1">Saldo total</p>
+            <p className={`text-3xl font-semibold ${summary.totalBalance >= 0 ? 'text-income' : 'text-expense'}`}>
+              {formatCurrency(summary.totalBalance)}
+            </p>
+            <p className="text-xs text-text-secondary mt-1">
+              Saldo inicial das contas + lançamentos já pagos, sem limitar ao mês selecionado
+            </p>
+          </Card>
+
+          <p className="text-sm text-text-secondary mb-2">Resumo do mês</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <Card>
               <p className="text-sm text-text-secondary mb-1">Receitas do mês</p>

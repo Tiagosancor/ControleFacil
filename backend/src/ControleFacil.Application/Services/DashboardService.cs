@@ -46,6 +46,32 @@ public class DashboardService : IDashboardService
             .OrderByDescending(b => b.Total)
             .ToList();
 
-        return new MonthlySummaryDto(year, month, totalIncome, totalExpense, totalIncome - totalExpense, breakdown);
+        var totalBalance = await GetTotalBalanceAsync();
+
+        return new MonthlySummaryDto(year, month, totalIncome, totalExpense, totalIncome - totalExpense, totalBalance, breakdown);
+    }
+
+    // Saldo total = "quanto dinheiro o usuário tem agora": saldo inicial das contas bancárias
+    // ATIVAS + todos os lançamentos já pagos dessas contas (receita soma, despesa subtrai),
+    // sem recorte de mês — mesma semântica de saldo usada em BankAccountService, só que somada
+    // entre todas as contas. Contas inativas (soft-deleted) e lançamentos pendentes ficam de fora.
+    private async Task<decimal> GetTotalBalanceAsync()
+    {
+        var activeAccounts = await _unitOfWork.BankAccounts.Query()
+            .Where(b => b.UserId == _currentUser.UserId && b.IsActive)
+            .Select(b => new { b.Id, b.InitialBalance })
+            .ToListAsync();
+
+        var initialBalanceSum = activeAccounts.Sum(b => b.InitialBalance);
+        var activeAccountIds = activeAccounts.Select(b => b.Id).ToList();
+        if (activeAccountIds.Count == 0)
+            return initialBalanceSum;
+
+        var paidDelta = await _unitOfWork.Transactions.Query()
+            .Where(t => activeAccountIds.Contains(t.BankAccountId) && t.UserId == _currentUser.UserId && t.Status == TransactionStatus.Paid)
+            .Select(t => t.Category!.Type == CategoryType.Income ? t.Amount : -t.Amount)
+            .SumAsync();
+
+        return initialBalanceSum + paidDelta;
     }
 }

@@ -13,6 +13,7 @@ export default function NewCategoryPage() {
   const [parentCategoryId, setParentCategoryId] = useState('')
   const [rootCategories, setRootCategories] = useState([])
   const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     categoryService.list({ includeInactive: false, page: 1, pageSize: 200 })
@@ -27,6 +28,7 @@ export default function NewCategoryPage() {
     e.preventDefault()
     if (!name) return setErrors({ name: 'Nome é obrigatório' })
 
+    setSubmitting(true)
     try {
       await categoryService.create({
         name,
@@ -36,6 +38,8 @@ export default function NewCategoryPage() {
       Router.push('/categories')
     } catch (err) {
       setErrors({ form: err?.response?.data?.error || 'Falha ao criar categoria' })
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -71,7 +75,9 @@ export default function NewCategoryPage() {
           )}
 
           {errors.form && <div className="text-red-600 text-sm mb-3">{errors.form}</div>}
-          <Button type="submit" variant="primary">Criar categoria</Button>
+          <Button type="submit" variant="primary" loading={submitting}>
+            {submitting ? 'Criando...' : 'Criar categoria'}
+          </Button>
         </form>
       </Card>
     </AppLayout>

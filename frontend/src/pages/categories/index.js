@@ -4,6 +4,7 @@ import AppLayout from '@/components/AppLayout'
 import { categoryService } from '@/services/categoryService'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import Skeleton from '@/components/ui/Skeleton'
 
 export default function CategoriesPage() {
   const [items, setItems] = useState([])
@@ -42,36 +43,65 @@ export default function CategoriesPage() {
         Mostrar inativas
       </label>
 
-      <Card className="p-0 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-xs text-text-secondary uppercase border-b border-border">
-              <th className="text-left p-3">Nome</th>
-              <th className="text-left p-3">Tipo</th>
-              <th className="text-left p-3">Grupo</th>
-              <th className="text-left p-3">Status</th>
-              <th className="text-left p-3"></th>
-            </tr>
-          </thead>
-          <tbody>
+      {loading ? (
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
+        </div>
+      ) : (
+        <>
+          {/* Tabela em telas md+; lista de cards em telas menores, onde uma
+              tabela de 5 colunas não cabe sem cortar conteúdo. */}
+          <Card className="hidden md:block p-0 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-text-secondary uppercase border-b border-border">
+                  <th className="text-left p-3">Nome</th>
+                  <th className="text-left p-3">Tipo</th>
+                  <th className="text-left p-3">Grupo</th>
+                  <th className="text-left p-3">Status</th>
+                  <th className="text-left p-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map(category => (
+                  <tr key={category.id} className="border-b border-border hover:bg-background">
+                    <td className="p-3">{category.name}</td>
+                    <td className="p-3">
+                      <span className={category.type === 'Income' ? 'text-income' : 'text-expense'}>
+                        {category.type === 'Income' ? 'Receita' : 'Despesa'}
+                      </span>
+                    </td>
+                    <td className="p-3 text-text-secondary">{category.parentCategoryName || '—'}</td>
+                    <td className="p-3">{category.isActive ? 'Ativa' : 'Inativa'}</td>
+                    <td className="p-3">
+                      <Link href={`/categories/${category.id}/edit`} className="text-accent">Editar</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+
+          <div className="flex flex-col gap-2 md:hidden">
             {items.map(category => (
-              <tr key={category.id} className="border-b border-border hover:bg-background">
-                <td className="p-3">{category.name}</td>
-                <td className="p-3">
-                  <span className={category.type === 'Income' ? 'text-income' : 'text-expense'}>
-                    {category.type === 'Income' ? 'Receita' : 'Despesa'}
-                  </span>
-                </td>
-                <td className="p-3 text-text-secondary">{category.parentCategoryName || '—'}</td>
-                <td className="p-3">{category.isActive ? 'Ativa' : 'Inativa'}</td>
-                <td className="p-3">
-                  <Link href={`/categories/${category.id}/edit`} className="text-accent">Editar</Link>
-                </td>
-              </tr>
+              <Link key={category.id} href={`/categories/${category.id}/edit`}>
+                <Card>
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{category.name}</p>
+                      <p className="text-xs text-text-secondary mt-1">{category.parentCategoryName || 'Categoria raiz'}</p>
+                    </div>
+                    <span className={`text-sm shrink-0 ${category.type === 'Income' ? 'text-income' : 'text-expense'}`}>
+                      {category.type === 'Income' ? 'Receita' : 'Despesa'}
+                    </span>
+                  </div>
+                  {!category.isActive && <p className="text-xs text-text-muted mt-1">Inativa</p>}
+                </Card>
+              </Link>
             ))}
-          </tbody>
-        </table>
-      </Card>
+          </div>
+        </>
+      )}
 
       {!loading && !items.length && <p className="mt-4 text-sm text-text-secondary">Nenhuma categoria encontrada.</p>}
     </AppLayout>

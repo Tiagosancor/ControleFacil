@@ -35,6 +35,7 @@ export default function NewTransactionPage() {
   const [status, setStatus] = useState('Pending')
   const [totalInstallments, setTotalInstallments] = useState('')
   const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     categoryService.list({ includeInactive: false, page: 1, pageSize: 200 }).then(res => {
@@ -58,6 +59,7 @@ export default function NewTransactionPage() {
     setErrors(errs)
     if (Object.keys(errs).length) return
 
+    setSubmitting(true)
     try {
       await transactionService.create({
         entryDate,
@@ -78,6 +80,8 @@ export default function NewTransactionPage() {
           || (apiErrors && Object.values(apiErrors).flat().join(' '))
           || 'Falha ao criar lançamento',
       })
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -126,7 +130,9 @@ export default function NewTransactionPage() {
           />
 
           {errors.form && <div className="text-red-600 text-sm mb-3">{errors.form}</div>}
-          <Button type="submit" variant="primary">Criar lançamento</Button>
+          <Button type="submit" variant="primary" loading={submitting}>
+            {submitting ? 'Criando...' : 'Criar lançamento'}
+          </Button>
         </form>
       </Card>
     </AppLayout>

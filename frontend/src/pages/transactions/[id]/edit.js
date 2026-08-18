@@ -8,6 +8,7 @@ import FormInput from '@/components/FormInput'
 import FormSelect from '@/components/FormSelect'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import Skeleton from '@/components/ui/Skeleton'
 
 const PAYMENT_METHODS = [
   { value: 'Cash', label: 'À vista' },
@@ -39,6 +40,7 @@ export default function EditTransactionPage() {
   const [status, setStatus] = useState('Pending')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -74,6 +76,7 @@ export default function EditTransactionPage() {
     setErrors(errs)
     if (Object.keys(errs).length) return
 
+    setSubmitting(true)
     try {
       await transactionService.update(id, {
         entryDate,
@@ -93,22 +96,44 @@ export default function EditTransactionPage() {
           || (apiErrors && Object.values(apiErrors).flat().join(' '))
           || 'Falha ao salvar lançamento',
       })
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const removeOne = async () => {
     if (!confirm('Excluir este lançamento?')) return
-    await transactionService.remove(id)
-    router.push('/transactions')
+    setSubmitting(true)
+    try {
+      await transactionService.remove(id)
+      router.push('/transactions')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const removeSeries = async () => {
     if (!confirm('Cancelar a série inteira? Todas as parcelas serão excluídas.')) return
-    await transactionService.removeSeries(seriesInfo.seriesId)
-    router.push('/transactions')
+    setSubmitting(true)
+    try {
+      await transactionService.removeSeries(seriesInfo.seriesId)
+      router.push('/transactions')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  if (loading) return <AppLayout><p className="text-sm text-text-secondary">Carregando...</p></AppLayout>
+  if (loading) {
+    return (
+      <AppLayout>
+        <Skeleton className="h-8 w-52 mb-6" />
+        <Card className="max-w-lg">
+          {Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-10 w-full mb-4" />)}
+          <Skeleton className="h-9 w-32" />
+        </Card>
+      </AppLayout>
+    )
+  }
 
   return (
     <AppLayout>
@@ -148,10 +173,10 @@ export default function EditTransactionPage() {
 
           {errors.form && <div className="text-red-600 text-sm mb-3">{errors.form}</div>}
           <div className="flex gap-3 flex-wrap">
-            <Button type="submit" variant="primary">Salvar</Button>
-            <Button type="button" variant="danger" onClick={removeOne}>Excluir esta parcela</Button>
+            <Button type="submit" variant="primary" loading={submitting}>Salvar</Button>
+            <Button type="button" variant="danger" onClick={removeOne} disabled={submitting}>Excluir esta parcela</Button>
             {seriesInfo && (
-              <Button type="button" variant="danger" onClick={removeSeries}>Cancelar série inteira</Button>
+              <Button type="button" variant="danger" onClick={removeSeries} disabled={submitting}>Cancelar série inteira</Button>
             )}
           </div>
         </form>

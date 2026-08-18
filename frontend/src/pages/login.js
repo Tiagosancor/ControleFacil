@@ -12,6 +12,7 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
 
   const submit = async (ev) => {
     ev.preventDefault()
@@ -20,11 +21,14 @@ export default function Login() {
     if (!password) errs.password = 'Senha é obrigatória'
     setErrors(errs)
     if (Object.keys(errs).length) return
+    setSubmitting(true)
     try {
       const res = await authService.login({ email, password })
       login(res.data.token)
     } catch (err) {
       setErrors({ form: err?.response?.data?.error || 'Login falhou' })
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -36,8 +40,8 @@ export default function Login() {
           <FormInput label="Email" value={email} onChange={setEmail} error={errors.email} />
           <FormInput label="Senha" type="password" value={password} onChange={setPassword} error={errors.password} />
           {errors.form && <div className="text-red-600 text-sm mt-1 mb-2">{errors.form}</div>}
-          <Button variant="primary" type="submit" className="w-full mt-2">
-            Entrar
+          <Button variant="primary" type="submit" className="w-full mt-2" loading={submitting}>
+            {submitting ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>
         <p className="text-sm text-text-secondary mt-4 text-center">

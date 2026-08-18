@@ -12,6 +12,7 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
 
   const submit = async (ev) => {
     ev.preventDefault()
@@ -22,6 +23,7 @@ export default function Register() {
     if (password && password.length < 8) errs.password = 'Senha deve ter ao menos 8 caracteres'
     setErrors(errs)
     if (Object.keys(errs).length) return
+    setSubmitting(true)
     try {
       await authService.register({ name, email, password })
       Router.push('/login')
@@ -32,6 +34,8 @@ export default function Register() {
           || (apiErrors && Object.values(apiErrors).flat().join(' '))
           || 'Registro falhou',
       })
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -44,8 +48,8 @@ export default function Register() {
           <FormInput label="Email" value={email} onChange={setEmail} error={errors.email} />
           <FormInput label="Senha" type="password" value={password} onChange={setPassword} error={errors.password} />
           {errors.form && <div className="text-red-600 text-sm mt-1 mb-2">{errors.form}</div>}
-          <Button variant="primary" type="submit" className="w-full mt-2">
-            Registrar
+          <Button variant="primary" type="submit" className="w-full mt-2" loading={submitting}>
+            {submitting ? 'Registrando...' : 'Registrar'}
           </Button>
         </form>
         <p className="text-sm text-text-secondary mt-4 text-center">

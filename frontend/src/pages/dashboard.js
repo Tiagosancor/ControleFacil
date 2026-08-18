@@ -13,6 +13,7 @@ import AppLayout from '@/components/AppLayout'
 import { dashboardService } from '@/services/dashboardService'
 import Card from '@/components/ui/Card'
 import FormSelect from '@/components/FormSelect'
+import Skeleton from '@/components/ui/Skeleton'
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -137,6 +138,23 @@ export default function DashboardPage() {
           </FormSelect>
         </div>
       </Card>
+
+      {loading && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i}>
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-7 w-32" />
+              </Card>
+            ))}
+          </div>
+          <Card>
+            <Skeleton className="h-4 w-48 mb-4" />
+            <Skeleton className="h-40 w-full" />
+          </Card>
+        </>
+      )}
 
       {!loading && summary && (
         <>

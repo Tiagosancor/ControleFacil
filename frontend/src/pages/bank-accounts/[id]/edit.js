@@ -5,6 +5,7 @@ import { bankAccountService } from '@/services/bankAccountService'
 import FormInput from '@/components/FormInput'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import Skeleton from '@/components/ui/Skeleton'
 
 function formatCurrency(value) {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -20,6 +21,7 @@ export default function EditBankAccountPage() {
   const [isActive, setIsActive] = useState(true)
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -39,21 +41,41 @@ export default function EditBankAccountPage() {
     e.preventDefault()
     if (!name) return setErrors({ name: 'Nome é obrigatório' })
 
+    setSubmitting(true)
     try {
       await bankAccountService.update(id, { name, initialBalance: Number(initialBalance), isActive })
       router.push('/bank-accounts')
     } catch (err) {
       setErrors({ form: err?.response?.data?.error || 'Falha ao salvar conta bancária' })
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const remove = async () => {
     if (!confirm('Desativar esta conta bancária?')) return
-    await bankAccountService.remove(id)
-    router.push('/bank-accounts')
+    setSubmitting(true)
+    try {
+      await bankAccountService.remove(id)
+      router.push('/bank-accounts')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  if (loading) return <AppLayout><p className="text-sm text-text-secondary">Carregando...</p></AppLayout>
+  if (loading) {
+    return (
+      <AppLayout>
+        <Skeleton className="h-8 w-56 mb-6" />
+        <Card className="max-w-lg">
+          <Skeleton className="h-10 w-full mb-4" />
+          <Skeleton className="h-14 w-full mb-4" />
+          <Skeleton className="h-10 w-full mb-4" />
+          <Skeleton className="h-9 w-32" />
+        </Card>
+      </AppLayout>
+    )
+  }
 
   return (
     <AppLayout>
@@ -77,9 +99,9 @@ export default function EditBankAccountPage() {
             Ativa
           </label>
           {errors.form && <div className="text-red-600 text-sm mb-3">{errors.form}</div>}
-          <div className="flex gap-3">
-            <Button type="submit" variant="primary">Salvar</Button>
-            <Button type="button" variant="danger" onClick={remove}>Desativar</Button>
+          <div className="flex flex-wrap gap-3">
+            <Button type="submit" variant="primary" loading={submitting}>Salvar</Button>
+            <Button type="button" variant="danger" onClick={remove} disabled={submitting}>Desativar</Button>
           </div>
         </form>
       </Card>

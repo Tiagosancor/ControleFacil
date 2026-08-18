@@ -4,6 +4,7 @@ import AppLayout from '@/components/AppLayout'
 import { bankAccountService } from '@/services/bankAccountService'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
+import Skeleton from '@/components/ui/Skeleton'
 
 function formatCurrency(value) {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -42,32 +43,55 @@ export default function BankAccountsPage() {
         Mostrar inativas
       </label>
 
-      <Card className="p-0 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-xs text-text-secondary uppercase border-b border-border">
-              <th className="text-left p-3">Nome</th>
-              <th className="text-left p-3">Saldo inicial</th>
-              <th className="text-left p-3">Saldo atual</th>
-              <th className="text-left p-3">Status</th>
-              <th className="text-left p-3"></th>
-            </tr>
-          </thead>
-          <tbody>
+      {loading ? (
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
+        </div>
+      ) : (
+        <>
+          <Card className="hidden md:block p-0 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-text-secondary uppercase border-b border-border">
+                  <th className="text-left p-3">Nome</th>
+                  <th className="text-left p-3">Saldo inicial</th>
+                  <th className="text-left p-3">Saldo atual</th>
+                  <th className="text-left p-3">Status</th>
+                  <th className="text-left p-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map(account => (
+                  <tr key={account.id} className="border-b border-border hover:bg-background">
+                    <td className="p-3">{account.name}</td>
+                    <td className="p-3">{formatCurrency(account.initialBalance)}</td>
+                    <td className="p-3 font-medium">{formatCurrency(account.currentBalance)}</td>
+                    <td className="p-3">{account.isActive ? 'Ativa' : 'Inativa'}</td>
+                    <td className="p-3">
+                      <Link href={`/bank-accounts/${account.id}/edit`} className="text-accent">Editar</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+
+          <div className="flex flex-col gap-2 md:hidden">
             {items.map(account => (
-              <tr key={account.id} className="border-b border-border hover:bg-background">
-                <td className="p-3">{account.name}</td>
-                <td className="p-3">{formatCurrency(account.initialBalance)}</td>
-                <td className="p-3 font-medium">{formatCurrency(account.currentBalance)}</td>
-                <td className="p-3">{account.isActive ? 'Ativa' : 'Inativa'}</td>
-                <td className="p-3">
-                  <Link href={`/bank-accounts/${account.id}/edit`} className="text-accent">Editar</Link>
-                </td>
-              </tr>
+              <Link key={account.id} href={`/bank-accounts/${account.id}/edit`}>
+                <Card>
+                  <div className="flex justify-between items-center gap-2">
+                    <p className="font-medium truncate">{account.name}</p>
+                    <p className="font-medium shrink-0">{formatCurrency(account.currentBalance)}</p>
+                  </div>
+                  <p className="text-xs text-text-secondary mt-1">Saldo inicial: {formatCurrency(account.initialBalance)}</p>
+                  {!account.isActive && <p className="text-xs text-text-muted mt-1">Inativa</p>}
+                </Card>
+              </Link>
             ))}
-          </tbody>
-        </table>
-      </Card>
+          </div>
+        </>
+      )}
 
       {!loading && !items.length && <p className="mt-4 text-sm text-text-secondary">Nenhuma conta encontrada.</p>}
     </AppLayout>

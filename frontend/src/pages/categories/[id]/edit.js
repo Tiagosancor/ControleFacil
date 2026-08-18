@@ -6,6 +6,7 @@ import FormInput from '@/components/FormInput'
 import FormSelect from '@/components/FormSelect'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import Skeleton from '@/components/ui/Skeleton'
 
 export default function EditCategoryPage() {
   const router = useRouter()
@@ -18,6 +19,7 @@ export default function EditCategoryPage() {
   const [rootCategories, setRootCategories] = useState([])
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -45,6 +47,7 @@ export default function EditCategoryPage() {
     e.preventDefault()
     if (!name) return setErrors({ name: 'Nome é obrigatório' })
 
+    setSubmitting(true)
     try {
       await categoryService.update(id, {
         name,
@@ -55,16 +58,35 @@ export default function EditCategoryPage() {
       router.push('/categories')
     } catch (err) {
       setErrors({ form: err?.response?.data?.error || 'Falha ao salvar categoria' })
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const remove = async () => {
     if (!confirm('Desativar esta categoria?')) return
-    await categoryService.remove(id)
-    router.push('/categories')
+    setSubmitting(true)
+    try {
+      await categoryService.remove(id)
+      router.push('/categories')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  if (loading) return <AppLayout><p className="text-sm text-text-secondary">Carregando...</p></AppLayout>
+  if (loading) {
+    return (
+      <AppLayout>
+        <Skeleton className="h-8 w-48 mb-6" />
+        <Card className="max-w-lg">
+          <Skeleton className="h-10 w-full mb-4" />
+          <Skeleton className="h-10 w-full mb-4" />
+          <Skeleton className="h-10 w-full mb-4" />
+          <Skeleton className="h-9 w-32" />
+        </Card>
+      </AppLayout>
+    )
+  }
 
   return (
     <AppLayout>
@@ -98,9 +120,9 @@ export default function EditCategoryPage() {
           </label>
 
           {errors.form && <div className="text-red-600 text-sm mb-3">{errors.form}</div>}
-          <div className="flex gap-3">
-            <Button type="submit" variant="primary">Salvar</Button>
-            <Button type="button" variant="danger" onClick={remove}>Desativar</Button>
+          <div className="flex flex-wrap gap-3">
+            <Button type="submit" variant="primary" loading={submitting}>Salvar</Button>
+            <Button type="button" variant="danger" onClick={remove} disabled={submitting}>Desativar</Button>
           </div>
         </form>
       </Card>

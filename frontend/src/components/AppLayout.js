@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '@/contexts/AuthContext'
+import Spinner from '@/components/ui/Spinner'
 
 export default function AppLayout({ children }) {
   const router = useRouter()
@@ -15,7 +16,13 @@ export default function AppLayout({ children }) {
     { href: '/bank-accounts', label: 'Contas Bancárias' },
   ]
 
-  if (loading) return <div className="p-8 text-sm text-text-secondary">Verificando autenticação...</div>
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center gap-2 text-sm text-text-secondary">
+        <Spinner className="h-4 w-4" /> Verificando autenticação...
+      </div>
+    )
+  }
 
   if (!user) {
     router.push('/login')
@@ -24,13 +31,34 @@ export default function AppLayout({ children }) {
 
   return (
     <div>
-      <div className="md:hidden flex items-center px-4 py-3 bg-surface border-b border-border">
-        <button onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
+      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-surface border-b border-border">
+        <span className="text-base font-semibold text-accent">ControleFacil</span>
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'}
+          className="text-2xl leading-none px-1"
+        >
+          ☰
+        </button>
       </div>
 
       <div className="flex">
-        <aside className={`w-64 min-h-screen bg-surface border-r border-border px-4 py-6
-          ${sidebarOpen ? 'block' : 'hidden'} md:block`}>
+        {/* No mobile o menu é uma sobreposição (fixed) com um fundo escurecido —
+            antes ele "empurrava" o conteúdo no layout flex, espremendo a tela
+            principal em telas pequenas quando aberto. */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 w-64 bg-surface border-r border-border px-4 py-6 transform transition-transform duration-200 ease-out
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            md:static md:translate-x-0 md:min-h-screen md:block`}
+        >
           <div className="text-lg font-semibold text-accent mb-6">ControleFacil</div>
           <nav className="flex flex-col gap-2">
             {links.map(link => (
@@ -49,10 +77,10 @@ export default function AppLayout({ children }) {
           </nav>
         </aside>
 
-        <main className="flex-1 px-6 py-8">
-          <header className="flex justify-between items-center mb-8 pb-4 border-b border-border">
-            <span className="text-sm text-text-secondary">Olá, {user?.name}</span>
-            <button onClick={logout} className="text-sm text-text-secondary hover:text-text-primary">
+        <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 sm:py-8">
+          <header className="flex justify-between items-center gap-3 mb-6 sm:mb-8 pb-4 border-b border-border">
+            <span className="text-sm text-text-secondary truncate">Olá, {user?.name}</span>
+            <button onClick={logout} className="text-sm text-text-secondary hover:text-text-primary shrink-0">
               Sair
             </button>
           </header>

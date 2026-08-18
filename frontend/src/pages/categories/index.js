@@ -74,7 +74,7 @@ export default function CategoriesPage() {
                     <td className="p-3 text-text-secondary">{category.parentCategoryName || '—'}</td>
                     <td className="p-3">{category.isActive ? 'Ativa' : 'Inativa'}</td>
                     <td className="p-3">
-                      <Link href={`/categories/${category.id}/edit`} className="text-accent">Editar</Link>
+                      <Link href={`/categories/${category.id}/edit`} className="text-link">Editar</Link>
                     </td>
                   </tr>
                 ))}

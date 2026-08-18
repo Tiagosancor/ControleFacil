@@ -53,7 +53,7 @@ export default function Register() {
           </Button>
         </form>
         <p className="text-sm text-text-secondary mt-4 text-center">
-          Já tem conta? <Link href="/login" className="text-accent">Entrar</Link>
+          Já tem conta? <Link href="/login" className="text-link">Entrar</Link>
         </p>
       </Card>
     </Layout>

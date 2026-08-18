@@ -68,7 +68,7 @@ export default function BankAccountsPage() {
                     <td className="p-3 font-medium">{formatCurrency(account.currentBalance)}</td>
                     <td className="p-3">{account.isActive ? 'Ativa' : 'Inativa'}</td>
                     <td className="p-3">
-                      <Link href={`/bank-accounts/${account.id}/edit`} className="text-accent">Editar</Link>
+                      <Link href={`/bank-accounts/${account.id}/edit`} className="text-link">Editar</Link>
                     </td>
                   </tr>
                 ))}

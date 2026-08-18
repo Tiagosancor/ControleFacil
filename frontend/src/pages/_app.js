@@ -38,7 +38,7 @@ function TopProgressBar() {
   return (
     <div className="fixed top-0 left-0 right-0 z-[60] h-1" aria-hidden="true">
       <div
-        className={`h-full bg-accent ease-out ${
+        className={`h-full bg-primary ease-out ${
           state === 'loading' ? 'w-[85%] transition-all duration-[8000ms]' : 'w-full opacity-0 transition-all duration-200'
         }`}
       />

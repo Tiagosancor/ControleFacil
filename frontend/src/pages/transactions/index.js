@@ -166,7 +166,7 @@ export default function TransactionsPage() {
                     </td>
                     <td className="p-3">{STATUS_LABEL[t.status] || t.status}</td>
                     <td className="p-3 whitespace-nowrap">
-                      <Link href={`/transactions/${t.id}/edit`} className="text-accent mr-3">Editar</Link>
+                      <Link href={`/transactions/${t.id}/edit`} className="text-link mr-3">Editar</Link>
                       <button
                         onClick={() => removeOne(t)}
                         disabled={removingId === t.id}
@@ -198,7 +198,7 @@ export default function TransactionsPage() {
                   </p>
                 </div>
                 <div className="flex gap-4 mt-2">
-                  <Link href={`/transactions/${t.id}/edit`} className="text-accent text-xs">Editar</Link>
+                  <Link href={`/transactions/${t.id}/edit`} className="text-link text-xs">Editar</Link>
                   <button
                     onClick={() => removeOne(t)}
                     disabled={removingId === t.id}

@@ -32,7 +32,7 @@ export default function AppLayout({ children }) {
   return (
     <div>
       <div className="md:hidden flex items-center justify-between px-4 py-3 bg-surface border-b border-border">
-        <span className="text-base font-semibold text-accent">ControleFacil</span>
+        <span className="text-base font-semibold text-primary">ControleFacil</span>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'}
@@ -59,7 +59,7 @@ export default function AppLayout({ children }) {
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             md:static md:translate-x-0 md:min-h-screen md:block`}
         >
-          <div className="text-lg font-semibold text-accent mb-6">ControleFacil</div>
+          <div className="text-lg font-semibold text-primary mb-6">ControleFacil</div>
           <nav className="flex flex-col gap-2">
             {links.map(link => (
               <Link
@@ -67,7 +67,7 @@ export default function AppLayout({ children }) {
                 href={link.href}
                 onClick={() => setSidebarOpen(false)}
                 className={`px-3 py-2 rounded-md text-sm ${router.pathname.startsWith(link.href)
-                  ? 'text-accent font-medium'
+                  ? 'text-primary font-medium'
                   : 'text-text-secondary hover:text-text-primary'
                   }`}
               >

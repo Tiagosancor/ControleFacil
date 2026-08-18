@@ -39,13 +39,16 @@ export default function Login() {
         <form onSubmit={submit}>
           <FormInput label="Email" value={email} onChange={setEmail} error={errors.email} />
           <FormInput label="Senha" type="password" value={password} onChange={setPassword} error={errors.password} />
+          <div className="text-right -mt-2 mb-2">
+            <Link href="/forgot-password" className="text-sm text-link">Esqueci minha senha</Link>
+          </div>
           {errors.form && <div className="text-red-600 text-sm mt-1 mb-2">{errors.form}</div>}
           <Button variant="primary" type="submit" className="w-full mt-2" loading={submitting}>
             {submitting ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>
         <p className="text-sm text-text-secondary mt-4 text-center">
-          Não tem conta? <Link href="/register" className="text-accent">Criar conta</Link>
+          Não tem conta? <Link href="/register" className="text-link">Criar conta</Link>
         </p>
       </Card>
     </Layout>

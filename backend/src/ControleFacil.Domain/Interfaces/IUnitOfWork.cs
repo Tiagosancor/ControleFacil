@@ -7,5 +7,6 @@ public interface IUnitOfWork
     IBankAccountRepository BankAccounts { get; }
     ITransactionRepository Transactions { get; }
     ITransactionSeriesRepository TransactionSeries { get; }
+    IPasswordResetTokenRepository PasswordResetTokens { get; }
     Task<int> SaveChangesAsync();
 }

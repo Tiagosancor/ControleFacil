@@ -105,6 +105,12 @@ builder.Services.AddRateLimiter(options =>
         limiterOptions.Window = TimeSpan.FromMinutes(1);
         limiterOptions.QueueLimit = 0;
     });
+    options.AddFixedWindowLimiter("forgot-password", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueLimit = 0;
+    });
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 

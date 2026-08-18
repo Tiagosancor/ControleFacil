@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<TransactionSeries> TransactionSeries => Set<TransactionSeries>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,5 +26,6 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new BankAccountConfiguration());
         modelBuilder.ApplyConfiguration(new TransactionSeriesConfiguration());
         modelBuilder.ApplyConfiguration(new TransactionConfiguration());
+        modelBuilder.ApplyConfiguration(new PasswordResetTokenConfiguration());
     }
 }

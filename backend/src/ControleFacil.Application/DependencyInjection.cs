@@ -19,6 +19,8 @@ public static class DependencyInjection
 
         services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
         services.AddScoped<IValidator<LoginDto>, LoginDtoValidator>();
+        services.AddScoped<IValidator<ForgotPasswordDto>, ForgotPasswordDtoValidator>();
+        services.AddScoped<IValidator<ResetPasswordDto>, ResetPasswordDtoValidator>();
         services.AddScoped<IValidator<CategoryCreateDto>, CategoryCreateDtoValidator>();
         services.AddScoped<IValidator<CategoryUpdateDto>, CategoryUpdateDtoValidator>();
         services.AddScoped<IValidator<BankAccountCreateDto>, BankAccountCreateDtoValidator>();

@@ -7,3 +7,7 @@ public record LoginDto(string Email, string Password);
 public record UserResponseDto(int Id, string Name, string Email);
 
 public record AuthResponseDto(string Token, UserResponseDto User);
+
+public record ForgotPasswordDto(string Email);
+
+public record ResetPasswordDto(string Token, string NewPassword);

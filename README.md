@@ -99,6 +99,8 @@ A API expõe a porta `5080` no host (mapeada para `8080` no container) e aplica 
 Todos exigem `Authorization: Bearer <token>`, exceto `/api/auth/register` e `/api/auth/login`.
 
 - `POST /api/auth/register`, `POST /api/auth/login` (rate limit: 5/min), `GET /api/auth/me`
+- `POST /api/auth/forgot-password` (rate limit: 5/min) — sempre responde com sucesso genérico, mesmo se o e-mail não existir; gera um token de reset de uso único (expira em 45 min) e envia por e-mail via Resend
+- `POST /api/auth/reset-password` — recebe `token` + `newPassword`; token inválido, expirado ou já usado retorna `400`
 - `GET/POST /api/categories`, `GET/PUT/DELETE /api/categories/{id}` — subcategoria sempre herda o `Type` do grupo pai; hierarquia limitada a 2 níveis; `DELETE` é soft-delete (`IsActive=false`)
 - `GET/POST /api/bank-accounts`, `GET/PUT/DELETE /api/bank-accounts/{id}` — `DELETE` também é soft-delete
 - `GET/POST /api/transactions`, `GET/PUT/DELETE /api/transactions/{id}` — listagem aceita filtros `year`, `month`, `categoryId`, `bankAccountId`, `status`; `POST` com `totalInstallments > 1` gera as N parcelas de uma vez (agrupadas por `TransactionSeries`)
@@ -117,6 +119,16 @@ npm run dev
 Sobe em `http://localhost:3000`, apontando para a API em `http://localhost:5000` por padrão (configurável via `NEXT_PUBLIC_API_URL`). Faça login com o usuário de seed acima.
 
 > **Nota de segurança**: o frontend está pinado em Next.js 13 (major exigida pela especificação, Pages Router). Essa linha tem vulnerabilidades conhecidas só corrigidas na v16 (breaking change de stack). Aceitável para este projeto de portfólio/uso local; reavaliar antes de qualquer deploy público.
+
+## Configurando o Resend (recuperação de senha)
+
+O fluxo de "esqueci minha senha" (`/forgot-password`, `/reset-password`) envia o e-mail de recuperação via [Resend](https://resend.com) (free tier, sem cartão de crédito), com o domínio `semeiagrana.com.br` verificado — remetente `Semeia Grana <naoresponda@semeiagrana.com.br>`.
+
+1. Crie uma conta gratuita em [resend.com](https://resend.com) e verifique o domínio de envio (adicionar os registros DNS indicados pelo Resend; a propagação pode levar até ~2h).
+2. Em **API Keys**, gere uma chave e configure-a **apenas como variável de ambiente**, nunca commitada:
+   - **Dev local**: em `backend/src/ControleFacil.Api/appsettings.Development.json` (arquivo local, fora do controle de versão), na seção `Resend.ApiKey`; ou via `RESEND_API_KEY` no `.env` da raiz, se for subir pelo `docker compose`.
+   - **Produção (Render)**: variável de ambiente `Resend__ApiKey` (mesmo padrão do `Jwt__Key`).
+3. `Resend.FromEmail`/`Resend.FromName` (em `appsettings.json`, não são segredo) controlam o remetente exibido — hoje `naoresponda@semeiagrana.com.br` / `Semeia Grana`. Enquanto um domínio próprio não está verificado numa nova instalação deste projeto, use `onboarding@resend.dev` como remetente temporário (o free tier só entrega, nesse caso, para o e-mail cadastrado na própria conta Resend).
 
 ## Rodando o app mobile
 
@@ -184,6 +196,8 @@ Banco no **Neon** (Postgres serverless), backend na **Render** (Docker), fronten
    | `Jwt__Issuer` | `ControleFacil` |
    | `Jwt__Audience` | `ControleFacilUsers` |
    | `Cors__AllowedOrigins__0` | a URL da Vercel do passo 3 abaixo (dá pra deixar `http://localhost:3000` por enquanto e ajustar depois) |
+   | `Resend__ApiKey` | a API key gerada no [Resend](#configurando-o-resend-recuperação-de-senha) — nunca reutilize chaves de dev em produção |
+   | `Frontend__BaseUrl` | a URL da Vercel do passo 3 abaixo (usada para montar o link de `/reset-password?token=...` no e-mail) |
 
    Não defina `PORT` — a Render injeta essa variável sozinha (10000 por padrão) e a API já lê `PORT` automaticamente (com fallback pra 8080 se não existir, usado no `docker-compose` local).
 4. Deploy. A Render expõe a API em algo como `https://controlefacil-api.onrender.com`.

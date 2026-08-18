@@ -1,11 +1,14 @@
+using System.Net.Http.Headers;
 using ControleFacil.Application.Interfaces;
 using ControleFacil.Domain.Interfaces;
 using ControleFacil.Infrastructure.Auth;
 using ControleFacil.Infrastructure.Data;
+using ControleFacil.Infrastructure.Email;
 using ControleFacil.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace ControleFacil.Infrastructure;
 
@@ -21,10 +24,19 @@ public static class DependencyInjection
         services.AddScoped<IBankAccountRepository, BankAccountRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<ITransactionSeriesRepository, TransactionSeriesRepository>();
+        services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IPasswordHasher, PasswordHasherService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+        services.Configure<ResendOptions>(configuration.GetSection("Resend"));
+        services.AddHttpClient<IEmailService, ResendEmailService>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<ResendOptions>>().Value;
+            client.BaseAddress = new Uri("https://api.resend.com/");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
+        });
 
         return services;
     }

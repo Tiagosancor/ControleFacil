@@ -45,5 +45,29 @@ public static class AuthEndpoints
 
             return Results.Ok(new UserResponseDto(user.Id, user.Name, user.Email));
         }).RequireAuthorization();
+
+        group.MapPost("/forgot-password", async (
+            ForgotPasswordDto dto,
+            IValidator<ForgotPasswordDto> validator,
+            IAuthService authService) =>
+        {
+            var problem = await validator.ValidateOrProblemAsync(dto);
+            if (problem != null) return problem;
+
+            await authService.ForgotPasswordAsync(dto);
+            return Results.Ok(new { message = "Se o e-mail informado estiver cadastrado, você receberá um link de recuperação em instantes." });
+        }).RequireRateLimiting("forgot-password");
+
+        group.MapPost("/reset-password", async (
+            ResetPasswordDto dto,
+            IValidator<ResetPasswordDto> validator,
+            IAuthService authService) =>
+        {
+            var problem = await validator.ValidateOrProblemAsync(dto);
+            if (problem != null) return problem;
+
+            await authService.ResetPasswordAsync(dto);
+            return Results.Ok(new { message = "Senha redefinida com sucesso." });
+        });
     }
 }

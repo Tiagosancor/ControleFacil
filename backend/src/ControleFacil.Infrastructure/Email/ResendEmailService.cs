@@ -21,9 +21,9 @@ public class ResendEmailService : IEmailService
         {
             from = $"{_options.FromName} <{_options.FromEmail}>",
             to = new[] { toEmail },
-            subject = "Recuperação de senha - ControleFacil",
+            subject = "Recuperação de senha - Semeia Grana",
             html = $"""
-                <p>Você solicitou a recuperação de senha da sua conta ControleFacil.</p>
+                <p>Você solicitou a recuperação de senha da sua conta Semeia Grana.</p>
                 <p><a href="{resetLink}">Clique aqui para redefinir sua senha</a></p>
                 <p>Este link expira em 45 minutos. Se você não solicitou essa recuperação, ignore este e-mail.</p>
                 """,

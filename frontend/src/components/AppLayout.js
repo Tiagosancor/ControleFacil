@@ -32,7 +32,10 @@ export default function AppLayout({ children }) {
   return (
     <div>
       <div className="md:hidden flex items-center justify-between px-4 py-3 bg-surface border-b border-border">
-        <span className="text-base font-semibold text-primary">ControleFacil</span>
+        <span className="flex items-center gap-2 text-base font-semibold text-primary">
+          <img src="/favicon.png" alt="" className="h-6 w-6" />
+          Semeia Grana
+        </span>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'}
@@ -59,7 +62,10 @@ export default function AppLayout({ children }) {
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             md:static md:translate-x-0 md:min-h-screen md:block`}
         >
-          <div className="text-lg font-semibold text-primary mb-6">ControleFacil</div>
+          <div className="flex items-center gap-2 text-lg font-semibold text-primary mb-6">
+            <img src="/favicon.png" alt="" className="h-7 w-7" />
+            Semeia Grana
+          </div>
           <nav className="flex flex-col gap-2">
             {links.map(link => (
               <Link

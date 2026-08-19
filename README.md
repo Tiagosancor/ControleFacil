@@ -1,4 +1,6 @@
-# ControleFacil
+# Semeia Grana
+
+_Nome técnico do repositório/projeto: `ControleFacil` (mantido no código — namespaces, nomes de pasta, etc.)._
 
 App de controle financeiro pessoal, inspirado em uma planilha de orçamento pessoal (plano de contas hierárquico, contas bancárias, lançamentos, dashboard mensal).
 

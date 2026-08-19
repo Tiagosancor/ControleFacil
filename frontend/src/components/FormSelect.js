@@ -6,7 +6,7 @@ export default function FormSelect({ label, value, onChange, error, children, ..
         value={value}
         onChange={e => onChange(e.target.value)}
         {...props}
-        className="w-full border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full border border-border rounded-md px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-primary"
       >
         {children}
       </select>

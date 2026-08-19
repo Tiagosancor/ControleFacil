@@ -28,7 +28,7 @@ export default function FormInput({ label, value, onChange, error, textarea, typ
           value={value}
           onChange={e => onChange(e.target.value)}
           {...props}
-          className="w-full border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full border border-border rounded-md px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-primary"
         />
       ) : isPassword ? (
         <div className="relative">
@@ -37,7 +37,7 @@ export default function FormInput({ label, value, onChange, error, textarea, typ
             value={value}
             onChange={e => onChange(e.target.value)}
             {...props}
-            className="w-full border border-border rounded-md px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full border border-border rounded-md px-3 py-2 pr-10 text-base focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <button
             type="button"
@@ -55,7 +55,7 @@ export default function FormInput({ label, value, onChange, error, textarea, typ
           value={value}
           onChange={e => onChange(e.target.value)}
           {...props}
-          className="w-full border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full border border-border rounded-md px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-primary"
         />
       )}
       {error && <div className="text-red-600 text-sm mt-1">{error}</div>}

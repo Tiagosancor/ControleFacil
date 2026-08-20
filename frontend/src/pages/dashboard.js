@@ -20,11 +20,11 @@ const MONTHS = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 
-const INCOME_COLOR = '#1E7A46'
-const EXPENSE_COLOR = '#B3261E'
-const AXIS_COLOR = '#898781'
-const GRID_COLOR = '#E5E3DC'
-const LABEL_COLOR = '#6B6960'
+const INCOME_COLOR = '#8A6A1B'
+const EXPENSE_COLOR = '#A6503B'
+const AXIS_COLOR = '#8B978F'
+const GRID_COLOR = '#CBD5CE'
+const LABEL_COLOR = '#4B5A52'
 
 function formatCurrency(value) {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -123,7 +123,7 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-2xl font-heading font-semibold">Dashboard</h1>
       </div>
 
       <Card className="mb-6">
@@ -162,9 +162,9 @@ export default function DashboardPage() {
 
       {!loading && summary && (
         <>
-          <Card className="mb-6">
+          <Card className="mb-6 bg-gradient-to-b from-primary-soft to-surface">
             <p className="text-sm text-text-secondary mb-1">Saldo total</p>
-            <p className={`text-3xl font-semibold ${summary.totalBalance >= 0 ? 'text-income' : 'text-expense'}`}>
+            <p className={`text-4xl font-heading font-medium tabular-nums ${summary.totalBalance >= 0 ? 'text-primary' : 'text-expense'}`}>
               {formatCurrency(summary.totalBalance)}
             </p>
             <p className="text-xs text-text-secondary mt-1">
@@ -176,15 +176,15 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <Card>
               <p className="text-sm text-text-secondary mb-1">Receitas do mês</p>
-              <p className="text-2xl font-semibold text-income">{formatCurrency(summary.totalIncome)}</p>
+              <p className="text-2xl font-heading font-semibold tabular-nums text-income">{formatCurrency(summary.totalIncome)}</p>
             </Card>
             <Card>
               <p className="text-sm text-text-secondary mb-1">Despesas do mês</p>
-              <p className="text-2xl font-semibold text-expense">{formatCurrency(summary.totalExpense)}</p>
+              <p className="text-2xl font-heading font-semibold tabular-nums text-expense">{formatCurrency(summary.totalExpense)}</p>
             </Card>
             <Card>
               <p className="text-sm text-text-secondary mb-1">Saldo do mês</p>
-              <p className={`text-2xl font-semibold ${summary.balance >= 0 ? 'text-income' : 'text-expense'}`}>
+              <p className={`text-2xl font-heading font-semibold tabular-nums ${summary.balance >= 0 ? 'text-primary' : 'text-expense'}`}>
                 {formatCurrency(summary.balance)}
               </p>
             </Card>

@@ -14,6 +14,22 @@ const MONTHS = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 const STATUS_LABEL = { Pending: 'Não pago', Paid: 'Pago' }
+const STATUS_STYLE = {
+  Paid: 'bg-primary-soft text-primary',
+  Pending: 'bg-gold-wash text-gold',
+}
+
+function StatusPill({ status }) {
+  return (
+    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap ${STATUS_STYLE[status] || 'bg-panel text-text-secondary'}`}>
+      {STATUS_LABEL[status] || status}
+    </span>
+  )
+}
+
+function CategoryDot({ isIncome }) {
+  return <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${isIncome ? 'bg-gold-soft' : 'bg-terracotta'}`} aria-hidden="true" />
+}
 
 function formatCurrency(value) {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -95,7 +111,7 @@ export default function TransactionsPage() {
   return (
     <AppLayout>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Lançamentos</h1>
+        <h1 className="text-2xl font-heading font-semibold">Lançamentos</h1>
         <Link href="/transactions/new">
           <Button variant="primary">Novo lançamento</Button>
         </Link>
@@ -144,7 +160,7 @@ export default function TransactionsPage() {
                   <th className="text-left p-3">Categoria</th>
                   <th className="text-left p-3">Descrição</th>
                   <th className="text-left p-3">Conta</th>
-                  <th className="text-left p-3">Valor</th>
+                  <th className="text-right p-3">Valor</th>
                   <th className="text-left p-3">Status</th>
                   <th className="text-left p-3"></th>
                 </tr>
@@ -154,17 +170,20 @@ export default function TransactionsPage() {
                   <tr key={t.id} className="border-b border-border hover:bg-background">
                     <td className="p-3">{t.entryDate}</td>
                     <td className="p-3">
-                      {t.categoryName}
-                      {t.totalInstallments && (
-                        <span className="text-text-muted"> ({t.installmentNumber}/{t.totalInstallments})</span>
-                      )}
+                      <span className="inline-flex items-center gap-2">
+                        <CategoryDot isIncome={categoryTypeById[t.categoryId] === 'Income'} />
+                        {t.categoryName}
+                        {t.totalInstallments && (
+                          <span className="text-text-muted">({t.installmentNumber}/{t.totalInstallments})</span>
+                        )}
+                      </span>
                     </td>
                     <td className="p-3">{t.description}</td>
                     <td className="p-3 text-text-secondary">{t.bankAccountName}</td>
-                    <td className={`p-3 ${categoryTypeById[t.categoryId] === 'Income' ? 'text-income' : 'text-expense'}`}>
-                      {categoryTypeById[t.categoryId] === 'Income' ? '+' : '-'} {formatCurrency(t.amount)}
+                    <td className={`p-3 text-right font-semibold tabular-nums ${categoryTypeById[t.categoryId] === 'Income' ? 'text-income' : 'text-expense'}`}>
+                      {categoryTypeById[t.categoryId] === 'Income' ? '+' : '−'} {formatCurrency(t.amount)}
                     </td>
-                    <td className="p-3">{STATUS_LABEL[t.status] || t.status}</td>
+                    <td className="p-3"><StatusPill status={t.status} /></td>
                     <td className="p-3 whitespace-nowrap">
                       <Link href={`/transactions/${t.id}/edit`} className="text-link mr-3">Editar</Link>
                       <button
@@ -186,16 +205,22 @@ export default function TransactionsPage() {
               <Card key={t.id}>
                 <div className="flex justify-between items-start gap-2">
                   <div className="min-w-0">
-                    <p className="font-medium truncate">{t.description}</p>
+                    <p className="font-medium truncate flex items-center gap-2">
+                      <CategoryDot isIncome={categoryTypeById[t.categoryId] === 'Income'} />
+                      {t.description}
+                    </p>
                     <p className="text-xs text-text-secondary mt-1">
                       {t.entryDate} · {t.categoryName}
                       {t.totalInstallments && ` (${t.installmentNumber}/${t.totalInstallments})`}
                     </p>
-                    <p className="text-xs text-text-secondary">{t.bankAccountName} · {STATUS_LABEL[t.status] || t.status}</p>
+                    <p className="text-xs text-text-secondary mt-1">{t.bankAccountName}</p>
                   </div>
-                  <p className={`shrink-0 text-sm font-medium ${categoryTypeById[t.categoryId] === 'Income' ? 'text-income' : 'text-expense'}`}>
-                    {categoryTypeById[t.categoryId] === 'Income' ? '+' : '-'} {formatCurrency(t.amount)}
-                  </p>
+                  <div className="shrink-0 flex flex-col items-end gap-1">
+                    <p className={`text-sm font-semibold tabular-nums ${categoryTypeById[t.categoryId] === 'Income' ? 'text-income' : 'text-expense'}`}>
+                      {categoryTypeById[t.categoryId] === 'Income' ? '+' : '−'} {formatCurrency(t.amount)}
+                    </p>
+                    <StatusPill status={t.status} />
+                  </div>
                 </div>
                 <div className="flex gap-4 mt-2">
                   <Link href={`/transactions/${t.id}/edit`} className="text-link text-xs">Editar</Link>

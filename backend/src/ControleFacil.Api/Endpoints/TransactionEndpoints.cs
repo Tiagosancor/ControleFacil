@@ -19,10 +19,12 @@ public static class TransactionEndpoints
             TransactionStatus? status = null,
             int? year = null,
             int? month = null,
+            DateOnly? startDate = null,
+            DateOnly? endDate = null,
             int page = 1,
             int pageSize = 20) =>
         {
-            var filter = new TransactionFilterDto(categoryId, bankAccountId, status, year, month);
+            var filter = new TransactionFilterDto(categoryId, bankAccountId, status, year, month, startDate, endDate);
             var result = await service.GetAllAsync(filter, page, pageSize);
             return Results.Ok(result);
         });

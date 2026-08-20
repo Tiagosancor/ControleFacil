@@ -32,6 +32,10 @@ public class TransactionService : ITransactionService
             query = query.Where(t => t.EntryDate.Year == filter.Year.Value);
         if (filter.Month.HasValue)
             query = query.Where(t => t.EntryDate.Month == filter.Month.Value);
+        if (filter.StartDate.HasValue)
+            query = query.Where(t => t.EntryDate >= filter.StartDate.Value);
+        if (filter.EndDate.HasValue)
+            query = query.Where(t => t.EntryDate <= filter.EndDate.Value);
 
         var total = await query.CountAsync();
         var items = await query

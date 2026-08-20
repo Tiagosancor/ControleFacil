@@ -44,4 +44,6 @@ public record TransactionFilterDto(
     int? BankAccountId,
     TransactionStatus? Status,
     int? Year,
-    int? Month);
+    int? Month,
+    DateOnly? StartDate,
+    DateOnly? EndDate);

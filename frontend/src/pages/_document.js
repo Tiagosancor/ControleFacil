@@ -5,6 +5,12 @@ export default function Document() {
     <Html lang="pt-BR">
       <Head>
         <link rel="icon" href="/favicon.png" type="image/png" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,480;9..144,600;9..144,680&family=Manrope:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
       </Head>
       <body>
         <Main />

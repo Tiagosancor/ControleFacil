@@ -32,7 +32,7 @@ export default function AppLayout({ children }) {
   return (
     <div>
       <div className="md:hidden flex items-center justify-between px-4 py-3 bg-surface border-b border-border">
-        <span className="flex items-center gap-2 text-base font-semibold text-primary">
+        <span className="flex items-center gap-2 text-base font-heading font-semibold text-primary">
           <img src="/favicon.png" alt="" className="h-6 w-6" />
           Semeia Grana
         </span>
@@ -58,11 +58,11 @@ export default function AppLayout({ children }) {
         )}
 
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-64 bg-surface border-r border-border px-4 py-6 transform transition-transform duration-200 ease-out
+          className={`fixed inset-y-0 left-0 z-50 w-64 bg-panel border-r border-border px-4 py-6 transform transition-transform duration-200 ease-out
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             md:static md:translate-x-0 md:min-h-screen md:block`}
         >
-          <div className="flex items-center gap-2 text-lg font-semibold text-primary mb-6">
+          <div className="flex items-center gap-2 text-lg font-heading font-semibold text-primary mb-6">
             <img src="/favicon.png" alt="" className="h-7 w-7" />
             Semeia Grana
           </div>
@@ -72,8 +72,8 @@ export default function AppLayout({ children }) {
                 key={link.href}
                 href={link.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`px-3 py-2 rounded-md text-sm ${router.pathname.startsWith(link.href)
-                  ? 'text-primary font-medium'
+                className={`px-3 py-2 rounded-md text-sm transition-colors ${router.pathname.startsWith(link.href)
+                  ? 'bg-primary-soft text-primary font-semibold'
                   : 'text-text-secondary hover:text-text-primary'
                   }`}
               >

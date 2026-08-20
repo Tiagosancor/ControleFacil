@@ -7,16 +7,32 @@ import { bankAccountService } from '@/services/bankAccountService'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import FormSelect from '@/components/FormSelect'
+import FormInput from '@/components/FormInput'
 import Skeleton from '@/components/ui/Skeleton'
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
+
 const STATUS_LABEL = { Pending: 'Não pago', Paid: 'Pago' }
 const STATUS_STYLE = {
   Paid: 'bg-primary-soft text-primary',
   Pending: 'bg-gold-wash text-gold',
+}
+
+function pad(n) {
+  return String(n).padStart(2, '0')
+}
+
+// Ano/Mês são só um atalho: convertidos aqui no primeiro/último dia do
+// período pra alimentar os campos De/Até, que são o filtro real enviado à API.
+function monthRange(year, month) {
+  const y = Number(year)
+  if (!month) return { start: `${y}-01-01`, end: `${y}-12-31` }
+  const m = Number(month)
+  const lastDay = new Date(y, m, 0).getDate()
+  return { start: `${y}-${pad(m)}-01`, end: `${y}-${pad(m)}-${pad(lastDay)}` }
 }
 
 function StatusPill({ status }) {
@@ -43,6 +59,9 @@ export default function TransactionsPage() {
   const [bankAccounts, setBankAccounts] = useState([])
   const [year, setYear] = useState(String(now.getFullYear()))
   const [month, setMonth] = useState(String(now.getMonth() + 1))
+  const initialRange = monthRange(now.getFullYear(), now.getMonth() + 1)
+  const [startDate, setStartDate] = useState(initialRange.start)
+  const [endDate, setEndDate] = useState(initialRange.end)
   const [categoryId, setCategoryId] = useState('')
   const [bankAccountId, setBankAccountId] = useState('')
   const [status, setStatus] = useState('')
@@ -60,12 +79,26 @@ export default function TransactionsPage() {
     return map
   }, [categories])
 
+  const applyYear = (y) => {
+    setYear(y)
+    const range = monthRange(y, month)
+    setStartDate(range.start)
+    setEndDate(range.end)
+  }
+
+  const applyMonth = (m) => {
+    setMonth(m)
+    const range = monthRange(year, m)
+    setStartDate(range.start)
+    setEndDate(range.end)
+  }
+
   const load = async () => {
     setLoading(true)
     try {
       const res = await transactionService.list({
-        year: year || undefined,
-        month: month || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
         categoryId: categoryId || undefined,
         bankAccountId: bankAccountId || undefined,
         status: status || undefined,
@@ -81,7 +114,7 @@ export default function TransactionsPage() {
     }
   }
 
-  useEffect(() => { load() }, [year, month, categoryId, bankAccountId, status])
+  useEffect(() => { load() }, [startDate, endDate, categoryId, bankAccountId, status])
 
   const removeOne = async (transaction) => {
     if (transaction.seriesId) {
@@ -118,16 +151,32 @@ export default function TransactionsPage() {
       </div>
 
       <Card className="mb-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <FormSelect label="Ano" value={year} onChange={setYear}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <FormSelect label="Ano" value={year} onChange={applyYear}>
             {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
               <option key={y} value={y}>{y}</option>
             ))}
           </FormSelect>
-          <FormSelect label="Mês" value={month} onChange={setMonth}>
+          <FormSelect label="Mês" value={month} onChange={applyMonth}>
             <option value="">Todos</option>
             {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
           </FormSelect>
+          <FormInput
+            label="De"
+            type="date"
+            value={startDate}
+            onChange={setStartDate}
+            max={endDate || undefined}
+          />
+          <FormInput
+            label="Até"
+            type="date"
+            value={endDate}
+            onChange={setEndDate}
+            min={startDate || undefined}
+          />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <FormSelect label="Categoria" value={categoryId} onChange={setCategoryId}>
             <option value="">Todas</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -155,13 +204,13 @@ export default function TransactionsPage() {
           <Card className="hidden md:block p-0 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-text-secondary uppercase border-b border-border">
-                  <th className="text-left p-3">Data</th>
-                  <th className="text-left p-3">Categoria</th>
-                  <th className="text-left p-3">Descrição</th>
-                  <th className="text-left p-3">Conta</th>
-                  <th className="text-right p-3">Valor</th>
-                  <th className="text-left p-3">Status</th>
+                <tr className="text-xs text-text-secondary border-b border-border">
+                  <th className="text-left p-3 font-normal">Data</th>
+                  <th className="text-left p-3 font-normal">Categoria</th>
+                  <th className="text-left p-3 font-normal">Descrição</th>
+                  <th className="text-left p-3 font-normal">Conta</th>
+                  <th className="text-right p-3 font-normal">Valor</th>
+                  <th className="text-left p-3 font-normal">Status</th>
                   <th className="text-left p-3"></th>
                 </tr>
               </thead>

@@ -137,7 +137,7 @@ export default function EditTransactionPage() {
 
   return (
     <AppLayout>
-      <h1 className="text-2xl font-semibold mb-6">Editar lançamento</h1>
+      <h1 className="text-2xl font-heading font-semibold mb-6">Editar lançamento</h1>
       <Card className="max-w-lg">
         {seriesInfo && (
           <div className="bg-background border border-border rounded-md px-3 py-2 text-sm text-text-secondary mb-4">

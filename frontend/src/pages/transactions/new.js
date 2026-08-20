@@ -87,7 +87,7 @@ export default function NewTransactionPage() {
 
   return (
     <AppLayout>
-      <h1 className="text-2xl font-semibold mb-6">Novo lançamento</h1>
+      <h1 className="text-2xl font-heading font-semibold mb-6">Novo lançamento</h1>
       <Card className="max-w-lg">
         <form onSubmit={submit}>
           <FormInput label="Data do lançamento" type="date" value={entryDate} onChange={setEntryDate} />

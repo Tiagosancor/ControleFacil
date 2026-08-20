@@ -45,7 +45,7 @@ export default function NewCategoryPage() {
 
   return (
     <AppLayout>
-      <h1 className="text-2xl font-semibold mb-6">Nova categoria</h1>
+      <h1 className="text-2xl font-heading font-semibold mb-6">Nova categoria</h1>
       <Card className="max-w-lg">
         <form onSubmit={submit}>
           <FormInput label="Nome" value={name} onChange={setName} error={errors.name} />

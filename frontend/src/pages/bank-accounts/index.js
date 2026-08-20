@@ -32,7 +32,7 @@ export default function BankAccountsPage() {
   return (
     <AppLayout>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Contas Bancárias</h1>
+        <h1 className="text-2xl font-heading font-semibold">Contas Bancárias</h1>
         <Link href="/bank-accounts/new">
           <Button variant="primary">Nova conta</Button>
         </Link>

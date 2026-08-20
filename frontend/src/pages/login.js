@@ -35,7 +35,7 @@ export default function Login() {
   return (
     <Layout>
       <Card>
-        <h1 className="text-2xl font-semibold mb-6">Entrar</h1>
+        <h1 className="text-2xl font-heading font-semibold mb-6">Entrar</h1>
         <form onSubmit={submit}>
           <FormInput label="Email" value={email} onChange={setEmail} error={errors.email} />
           <FormInput label="Senha" type="password" value={password} onChange={setPassword} error={errors.password} />

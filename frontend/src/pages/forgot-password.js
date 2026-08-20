@@ -33,7 +33,7 @@ export default function ForgotPassword() {
   return (
     <Layout>
       <Card>
-        <h1 className="text-2xl font-semibold mb-6">Esqueci minha senha</h1>
+        <h1 className="text-2xl font-heading font-semibold mb-6">Esqueci minha senha</h1>
         {sent ? (
           <p className="text-sm text-text-secondary">
             Se o e-mail informado estiver cadastrado, você receberá um link de recuperação em instantes. Verifique também a caixa de spam.

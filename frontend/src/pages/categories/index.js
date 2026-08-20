@@ -28,7 +28,7 @@ export default function CategoriesPage() {
   return (
     <AppLayout>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Categorias</h1>
+        <h1 className="text-2xl font-heading font-semibold">Categorias</h1>
         <Link href="/categories/new">
           <Button variant="primary">Nova categoria</Button>
         </Link>

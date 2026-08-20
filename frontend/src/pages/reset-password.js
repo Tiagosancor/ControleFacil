@@ -39,7 +39,7 @@ export default function ResetPassword() {
   return (
     <Layout>
       <Card>
-        <h1 className="text-2xl font-semibold mb-6">Redefinir senha</h1>
+        <h1 className="text-2xl font-heading font-semibold mb-6">Redefinir senha</h1>
         {!router.isReady ? null : !token ? (
           <p className="text-sm text-red-600">Link inválido. Solicite uma nova recuperação de senha.</p>
         ) : success ? (

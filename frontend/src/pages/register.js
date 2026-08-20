@@ -42,7 +42,7 @@ export default function Register() {
   return (
     <Layout>
       <Card>
-        <h1 className="text-2xl font-semibold mb-6">Criar conta</h1>
+        <h1 className="text-2xl font-heading font-semibold mb-6">Criar conta</h1>
         <form onSubmit={submit}>
           <FormInput label="Nome" value={name} onChange={setName} error={errors.name} />
           <FormInput label="Email" value={email} onChange={setEmail} error={errors.email} />

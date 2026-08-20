@@ -151,7 +151,7 @@ export default function TransactionsPage() {
       </div>
 
       <Card className="mb-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 [&>div]:min-w-0">
           <FormSelect label="Ano" value={year} onChange={applyYear}>
             {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
               <option key={y} value={y}>{y}</option>

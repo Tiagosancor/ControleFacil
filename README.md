@@ -207,6 +207,19 @@ Banco no **Neon** (Postgres serverless), backend na **Render** (Docker), fronten
 
 > ⚠️ **Cold start do free tier**: no plano gratuito da Render, o serviço "dorme" depois de ~15 minutos sem tráfego e a próxima requisição leva **até ~1 minuto** pra acordar o container (nada quebrado — só lento na primeira chamada depois de um tempo parado). Se for demonstrar o app ao vivo, abra a API alguns minutos antes ou avise sobre essa demora esperada.
 
+#### Sobre os crashes "Exited with status 139" (2026-08-20)
+
+O serviço no Render crashou duas vezes com exit status 139 (SIGSEGV — falha de acesso à memória, tecnicamente diferente do SIGKILL/137 que é a assinatura mais comum de um processo morto pelo OOM killer do Linux por estourar o limite de memória do container). Investigação feita:
+
+- **Código de acesso a dados**: revisado `TransactionService`, `DashboardService` e os repositórios — as listagens são paginadas (`Skip`/`Take`), agregações (`Sum`/somas por conta) são traduzidas pra SQL e rodam no banco, não carregam tudo em memória pra somar em C#, e não há `DbContext` criado manualmente fora do ciclo de vida gerenciado pelo DI (sem conexão vazando).
+- **Teste de carga local**: buildei a imagem do `Dockerfile` e rodei o container com `--memory=512m` (mesmo limite do free tier) contra um Postgres real, disparando 3 rodadas de 600 requisições concorrentes em `/api/transactions` (endpoint do filtro de data novo). Memória ficou estável entre rodadas (sem crescimento = sem vazamento) e nunca chegou perto do limite.
+- **GC ajustado mesmo assim**: o projeto usava Server GC (padrão do SDK Web), que cria um heap + thread por core que o processo enxerga — em host compartilhado isso pode reservar bem mais memória do que essa carga precisa, mesmo sem vazamento nenhum. Trocado para Workstation GC (`ControleFacil.Api.csproj`). No mesmo teste de carga acima, o pico de memória caiu de ~210MB para ~113MB — folga bem maior dentro dos 512MB do free tier.
+- **Logging de startup**: `Program.cs` agora loga cada fase da inicialização (migração/seed, bind do listener) e captura `AppDomain.UnhandledException`/`TaskScheduler.UnobservedTaskException`, então se crashar de novo o log deve trazer a exceção .NET real em vez de só "Exited with status 139" sem contexto.
+
+**Não encontrei uma causa de código clara e determinística** — a suspeita mais forte (Server GC com footprint alto) foi endereçada, mas um SIGSEGV genuíno é uma falha de baixo nível que o runtime gerenciado normalmente não expõe como exceção .NET nem sob carga simulada localmente; não dá pra provar 100% a causa raiz sem os logs do Render no exato momento do crash.
+
+**Próximo passo recomendado, antes de qualquer upgrade de plano**: acompanhar o gráfico de memória do serviço no painel da Render (Metrics) no horário de um próximo crash, e conferir se o log mostra alguma exceção .NET agora que o logging foi reforçado. Vale lembrar: o plano **Starter** da Render tem a **mesma RAM (512MB)** do Free — só adiciona CPU e remove o cold start — então ele não resolveria um crash por falta de memória. Se os crashes continuarem recorrentes mesmo depois dessas mudanças e o gráfico de memória mostrar uso batendo no teto, o próximo plano acima do Starter (com mais RAM) é que faria sentido, não o Starter em si.
+
 ### 3. Frontend web (Vercel)
 
 1. Crie uma conta em [vercel.com](https://vercel.com) (login do GitHub) e importe o mesmo repositório.

@@ -13,6 +13,22 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+// Handlers de último recurso: cobrem exceções que escapam do pipeline normal de
+// middleware/try-catch (ex.: erro numa thread de background, ou uma falha durante o
+// próprio startup antes da app existir). Sem isso, um crash chega ao log do Render como
+// "Exited with status N" sem nenhum contexto de qual exceção .NET causou a queda —
+// Console.Error aqui é deliberado (funciona mesmo antes do DI/ILogger existir e o Render
+// captura stdout/stderr do container diretamente).
+AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+{
+    Console.Error.WriteLine($"[FATAL] UnhandledException (terminating={e.IsTerminating}): {e.ExceptionObject}");
+};
+TaskScheduler.UnobservedTaskException += (_, e) =>
+{
+    Console.Error.WriteLine($"[FATAL] UnobservedTaskException: {e.Exception}");
+    e.SetObserved();
+};
+
 var builder = WebApplication.CreateBuilder(args);
 
 // O Render injeta a porta via a variável de ambiente PORT e espera a aplicação
@@ -115,6 +131,7 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var app = builder.Build();
+var startupLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -136,11 +153,32 @@ app.MapBankAccountEndpoints();
 app.MapTransactionEndpoints();
 app.MapDashboardEndpoints();
 
-using (var scope = app.Services.CreateScope())
+try
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
-    await DbSeeder.SeedAsync(db, passwordHasher);
+    startupLogger.LogInformation("Iniciando migração/seed do banco de dados...");
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+        await DbSeeder.SeedAsync(db, passwordHasher);
+    }
+    startupLogger.LogInformation("Migração/seed concluídos, iniciando o listener HTTP...");
+}
+catch (Exception ex)
+{
+    // Se isso falhar (ex.: banco inatingível), o processo vai encerrar de qualquer forma —
+    // mas ao menos o log do Render mostra QUAL exceção .NET causou a queda, em vez de só
+    // um "Exited with status N" sem contexto nenhum.
+    startupLogger.LogCritical(ex, "Falha fatal durante migração/seed do banco no startup.");
+    throw;
 }
 
-app.Run();
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    startupLogger.LogCritical(ex, "Falha fatal não tratada — a aplicação está encerrando.");
+    throw;
+}

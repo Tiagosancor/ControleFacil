@@ -19,6 +19,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Server GC cria um heap + thread dedicada por core que o processo enxerga, o que
+         em hosts compartilhados (ex.: Render free tier, 512MB) pode reservar memória bem
+         acima do que essa carga baixa realmente precisa. Workstation GC usa um único heap,
+         com footprint previsível — mais adequado aqui do que otimizar para throughput. -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
   </PropertyGroup>
 
 </Project>

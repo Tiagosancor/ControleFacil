@@ -170,11 +170,15 @@ export default function TransactionsPage() {
               type=date> às vezes se desenha mais largo que a caixa CSS calculada
               (w-full/box-sizing não é respeitado à risca nesse controle nativo em
               todo build do WebKit), então em vez de confiar só na largura calculada,
-              cortamos fisicamente qualquer excesso na borda do wrapper — com o mesmo
-              rounded-md do próprio input, pra o corte seguir a curva do canto em vez
-              de cortar reto (senão o canto direito fica quadrado, já que a borda
-              arredondada "de verdade" do input pertence à parte que foi cortada). */}
-          <div className="col-span-2 md:col-span-1 overflow-hidden rounded-md">
+              cortamos fisicamente qualquer excesso na borda do wrapper. overflow-hidden
+              + border-radius no mesmo elemento tem bug antigo e conhecido no
+              Safari/WebKit (o clip às vezes ignora o arredondamento, deixando canto
+              reto) — confirmado em dispositivo real. clip-path é o mecanismo
+              alternativo pra recorte arredondado, sem esse histórico de bug. */}
+          <div
+            className="col-span-2 md:col-span-1 overflow-hidden rounded-md"
+            style={{ clipPath: 'inset(0 round 7px)' }}
+          >
             <FormInput
               label="De"
               type="date"
@@ -183,7 +187,10 @@ export default function TransactionsPage() {
               max={endDate || undefined}
             />
           </div>
-          <div className="col-span-2 md:col-span-1 overflow-hidden rounded-md">
+          <div
+            className="col-span-2 md:col-span-1 overflow-hidden rounded-md"
+            style={{ clipPath: 'inset(0 round 7px)' }}
+          >
             <FormInput
               label="Até"
               type="date"

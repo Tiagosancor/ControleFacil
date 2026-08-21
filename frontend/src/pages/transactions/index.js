@@ -161,20 +161,29 @@ export default function TransactionsPage() {
             <option value="">Todos</option>
             {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
           </FormSelect>
-          <FormInput
-            label="De"
-            type="date"
-            value={startDate}
-            onChange={setStartDate}
-            max={endDate || undefined}
-          />
-          <FormInput
-            label="Até"
-            type="date"
-            value={endDate}
-            onChange={setEndDate}
-            min={startDate || undefined}
-          />
+          {/* Em telas pequenas, De/Até ocupam a linha inteira cada um: o Safari real do
+              iOS não encolhe o <input type=date> abaixo de um mínimo intrínseco próprio
+              (o valor por extenso, ex. '31 de ago. de 2026'), então dividir a linha ao
+              meio deixa os dois campos colados, sem o gap entre eles. A partir de md
+              sobra espaço de sobra e eles voltam a dividir a linha normalmente. */}
+          <div className="col-span-2 md:col-span-1">
+            <FormInput
+              label="De"
+              type="date"
+              value={startDate}
+              onChange={setStartDate}
+              max={endDate || undefined}
+            />
+          </div>
+          <div className="col-span-2 md:col-span-1">
+            <FormInput
+              label="Até"
+              type="date"
+              value={endDate}
+              onChange={setEndDate}
+              min={startDate || undefined}
+            />
+          </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <FormSelect label="Categoria" value={categoryId} onChange={setCategoryId}>

@@ -165,8 +165,13 @@ export default function TransactionsPage() {
               iOS não encolhe o <input type=date> abaixo de um mínimo intrínseco próprio
               (o valor por extenso, ex. '31 de ago. de 2026'), então dividir a linha ao
               meio deixa os dois campos colados, sem o gap entre eles. A partir de md
-              sobra espaço de sobra e eles voltam a dividir a linha normalmente. */}
-          <div className="col-span-2 md:col-span-1">
+              sobra espaço de sobra e eles voltam a dividir a linha normalmente.
+              overflow-hidden é cinto-e-suspensório: no Safari real o próprio <input
+              type=date> às vezes se desenha mais largo que a caixa CSS calculada
+              (w-full/box-sizing não é respeitado à risca nesse controle nativo em
+              todo build do WebKit), então em vez de confiar só na largura calculada,
+              cortamos fisicamente qualquer excesso na borda do wrapper. */}
+          <div className="col-span-2 md:col-span-1 overflow-hidden">
             <FormInput
               label="De"
               type="date"
@@ -175,7 +180,7 @@ export default function TransactionsPage() {
               max={endDate || undefined}
             />
           </div>
-          <div className="col-span-2 md:col-span-1">
+          <div className="col-span-2 md:col-span-1 overflow-hidden">
             <FormInput
               label="Até"
               type="date"

@@ -16,6 +16,7 @@ export default function AppLayout({ children }) {
     { href: '/transactions', label: 'Lançamentos' },
     { href: '/categories', label: 'Categorias' },
     { href: '/category-budgets', label: 'Orçamentos' },
+    { href: '/monthly-goals', label: 'Meta Mensal' },
     { href: '/bank-accounts', label: 'Contas Bancárias' },
   ]
 

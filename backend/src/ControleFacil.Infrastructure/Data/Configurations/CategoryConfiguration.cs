@@ -11,6 +11,8 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.HasKey(c => c.Id);
         builder.Property(c => c.Name).IsRequired().HasMaxLength(200);
         builder.Property(c => c.Type).HasConversion<string>().HasMaxLength(20);
+        builder.Property(c => c.IconKey).HasMaxLength(50);
+        builder.Property(c => c.Color).HasMaxLength(7);
 
         builder.HasOne(c => c.ParentCategory)
             .WithMany(c => c.Children)

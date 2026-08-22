@@ -12,4 +12,7 @@ public record CategoryResponseDto(
     CategoryType Type,
     int? ParentCategoryId,
     string? ParentCategoryName,
-    bool IsActive);
+    bool IsActive,
+    bool IsSystem = false,
+    string? IconKey = null,
+    string? Color = null);

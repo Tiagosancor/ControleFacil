@@ -31,6 +31,10 @@ public class ExceptionHandlingMiddleware
         {
             await WriteProblemAsync(context, StatusCodes.Status404NotFound, ex.Message);
         }
+        catch (ForbiddenException ex)
+        {
+            await WriteProblemAsync(context, StatusCodes.Status403Forbidden, ex.Message);
+        }
         catch (BusinessRuleException ex)
         {
             await WriteProblemAsync(context, StatusCodes.Status400BadRequest, ex.Message);

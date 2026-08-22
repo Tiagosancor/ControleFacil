@@ -25,9 +25,34 @@ public static class DbSeeder
         ["IMPOSTOS"] = new[] { "Imposto de renda", "INSS" },
     };
 
+    // (Nome, IconKey, Color) — ver docs/reference/sprint-categorias-sistema.md seção 2.
+    // IconKey é agnóstico de biblioteca: cada frontend (lucide-react no web,
+    // MaterialCommunityIcons no mobile) mapeia esse key pro ícone real dele.
+    private static readonly (string Name, string IconKey, string Color)[] SystemExpenseCategories =
+    {
+        ("Alimentação", "utensils", "#E07A5F"),
+        ("Moradia", "home", "#8A6A1B"),
+        ("Compras", "shopping-bag", "#A6503B"),
+        ("Educação", "graduation-cap", "#3D5A80"),
+        ("Lazer", "ticket", "#7B9E89"),
+        ("Operação bancária", "landmark", "#8B5CF6"),
+        ("Outros", "more-horizontal", "#6B7280"),
+        ("Pix", "arrow-left-right", "#8B5CF6"),
+        ("Saúde", "heart-pulse", "#84A98C"),
+        ("Serviços", "clipboard-list", "#285649"),
+        ("Supermercado", "shopping-cart", "#E4572E"),
+        ("Transporte", "bus", "#4C5FD5"),
+        ("Viagem", "plane", "#3AAED8"),
+    };
+
     public static async Task SeedAsync(AppDbContext context, IPasswordHasher passwordHasher)
     {
         await context.Database.MigrateAsync();
+
+        // Roda em toda inicialização (não só banco vazio) pra também alcançar bancos já
+        // provisionados — diferente do seed de usuário/categorias de exemplo abaixo, que
+        // só roda uma vez num banco totalmente novo.
+        await SeedSystemCategoriesAsync(context);
 
         if (await context.Users.AnyAsync())
             return;
@@ -104,6 +129,29 @@ public static class DbSeeder
                 UpdatedAt = DateTime.UtcNow,
             }
         );
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedSystemCategoriesAsync(AppDbContext context)
+    {
+        if (await context.Categories.AnyAsync(c => c.IsSystem))
+            return;
+
+        foreach (var (name, iconKey, color) in SystemExpenseCategories)
+        {
+            context.Categories.Add(new Category
+            {
+                Name = name,
+                Type = CategoryType.Expense,
+                ParentCategoryId = null,
+                UserId = null,
+                IsSystem = true,
+                IconKey = iconKey,
+                Color = color,
+                IsActive = true,
+            });
+        }
+
         await context.SaveChangesAsync();
     }
 }

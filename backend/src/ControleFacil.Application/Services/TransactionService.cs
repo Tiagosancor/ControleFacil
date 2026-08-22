@@ -155,9 +155,11 @@ public class TransactionService : ITransactionService
         await _unitOfWork.SaveChangesAsync();
     }
 
+    // Categoria de sistema (Sprint de Categorias de Sistema) também é um destino válido
+    // pra um lançamento — só não pode ser editada/excluída como categoria em si.
     private async Task EnsureCategoryOwnedAsync(int categoryId)
     {
-        var exists = await _unitOfWork.Categories.AnyAsync(c => c.Id == categoryId && c.UserId == _currentUser.UserId);
+        var exists = await _unitOfWork.Categories.AnyAsync(c => c.Id == categoryId && (c.UserId == _currentUser.UserId || c.IsSystem));
         if (!exists)
             throw new NotFoundException("Categoria não encontrada.");
     }

@@ -112,4 +112,32 @@ public class TransactionServiceTests
                 new DateOnly(2026, 3, 5), categoryUser2.Id, "Compra", PaymentMethod.Credit,
                 accountUser2.Id, 250m, null, TransactionStatus.Pending, null, card.Id)));
     }
+
+    [Fact]
+    public async Task CreateAsync_WithSystemCategory_Succeeds()
+    {
+        var uow = TestUnitOfWorkFactory.Create(out _);
+        var service = new TransactionService(uow, new FakeCurrentUserService(1));
+        var (_, account) = await SeedCategoryAndAccountAsync(uow);
+
+        var systemCategory = new Category
+        {
+            Name = "Alimentação",
+            Type = CategoryType.Expense,
+            UserId = null,
+            IsSystem = true,
+            IconKey = "utensils",
+            Color = "#E07A5F",
+            IsActive = true,
+        };
+        await uow.Categories.AddAsync(systemCategory);
+        await uow.SaveChangesAsync();
+
+        var created = await service.CreateAsync(new TransactionCreateDto(
+            new DateOnly(2026, 3, 5), systemCategory.Id, "Almoço", PaymentMethod.Cash,
+            account.Id, 45m, null, TransactionStatus.Paid, null));
+
+        var result = Assert.Single(created);
+        Assert.Equal(systemCategory.Id, result.CategoryId);
+    }
 }

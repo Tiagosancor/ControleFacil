@@ -20,6 +20,7 @@ export default function AppLayout({ children }) {
     { href: '/bank-accounts', label: 'Contas Bancárias' },
     { href: '/investments', label: 'Investimentos' },
     { href: '/long-term-goals', label: 'Metas de Longo Prazo' },
+    { href: '/credit-cards', label: 'Cartões de Crédito' },
   ]
 
   if (loading) {

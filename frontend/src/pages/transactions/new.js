@@ -4,6 +4,7 @@ import AppLayout from '@/components/AppLayout'
 import { transactionService } from '@/services/transactionService'
 import { categoryService } from '@/services/categoryService'
 import { bankAccountService } from '@/services/bankAccountService'
+import { creditCardService } from '@/services/creditCardService'
 import FormInput from '@/components/FormInput'
 import FormSelect from '@/components/FormSelect'
 import Button from '@/components/ui/Button'
@@ -24,12 +25,14 @@ function categoryLabel(c) {
 export default function NewTransactionPage() {
   const [categories, setCategories] = useState([])
   const [bankAccounts, setBankAccounts] = useState([])
+  const [creditCards, setCreditCards] = useState([])
 
   const [entryDate, setEntryDate] = useState(new Date().toISOString().slice(0, 10))
   const [categoryId, setCategoryId] = useState('')
   const [description, setDescription] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('Cash')
   const [bankAccountId, setBankAccountId] = useState('')
+  const [creditCardId, setCreditCardId] = useState('')
   const [amount, setAmount] = useState('')
   const [paymentDate, setPaymentDate] = useState('')
   const [status, setStatus] = useState('Pending')
@@ -47,6 +50,7 @@ export default function NewTransactionPage() {
       setBankAccounts(res.data.items)
       if (res.data.items.length) setBankAccountId(String(res.data.items[0].id))
     })
+    creditCardService.list({ includeInactive: false }).then(res => setCreditCards(res.data))
   }, [])
 
   const submit = async (e) => {
@@ -71,6 +75,7 @@ export default function NewTransactionPage() {
         paymentDate: paymentDate || null,
         status,
         totalInstallments: totalInstallments ? Number(totalInstallments) : null,
+        creditCardId: paymentMethod === 'Credit' && creditCardId ? Number(creditCardId) : null,
       })
       Router.push('/transactions')
     } catch (err) {
@@ -101,6 +106,13 @@ export default function NewTransactionPage() {
           <FormSelect label="Forma de pagamento" value={paymentMethod} onChange={setPaymentMethod}>
             {PAYMENT_METHODS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </FormSelect>
+
+          {paymentMethod === 'Credit' && creditCards.length > 0 && (
+            <FormSelect label="Cartão de crédito (opcional)" value={creditCardId} onChange={setCreditCardId}>
+              <option value="">Nenhum</option>
+              {creditCards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </FormSelect>
+          )}
 
           <FormSelect label="Conta bancária" value={bankAccountId} onChange={setBankAccountId} error={errors.bankAccountId}>
             {bankAccounts.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}

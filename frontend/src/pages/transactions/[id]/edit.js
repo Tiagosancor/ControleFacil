@@ -4,6 +4,7 @@ import AppLayout from '@/components/AppLayout'
 import { transactionService } from '@/services/transactionService'
 import { categoryService } from '@/services/categoryService'
 import { bankAccountService } from '@/services/bankAccountService'
+import { creditCardService } from '@/services/creditCardService'
 import FormInput from '@/components/FormInput'
 import FormSelect from '@/components/FormSelect'
 import Button from '@/components/ui/Button'
@@ -28,6 +29,7 @@ export default function EditTransactionPage() {
 
   const [categories, setCategories] = useState([])
   const [bankAccounts, setBankAccounts] = useState([])
+  const [creditCards, setCreditCards] = useState([])
   const [seriesInfo, setSeriesInfo] = useState(null)
 
   const [entryDate, setEntryDate] = useState('')
@@ -35,6 +37,7 @@ export default function EditTransactionPage() {
   const [description, setDescription] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('Cash')
   const [bankAccountId, setBankAccountId] = useState('')
+  const [creditCardId, setCreditCardId] = useState('')
   const [amount, setAmount] = useState('')
   const [paymentDate, setPaymentDate] = useState('')
   const [status, setStatus] = useState('Pending')
@@ -48,19 +51,22 @@ export default function EditTransactionPage() {
       transactionService.getById(id),
       categoryService.list({ includeInactive: false, page: 1, pageSize: 200 }),
       bankAccountService.list({ includeInactive: false, page: 1, pageSize: 200 }),
-    ]).then(([txRes, categoriesRes, bankAccountsRes]) => {
+      creditCardService.list({ includeInactive: false }),
+    ]).then(([txRes, categoriesRes, bankAccountsRes, creditCardsRes]) => {
       const t = txRes.data
       setEntryDate(t.entryDate)
       setCategoryId(String(t.categoryId))
       setDescription(t.description)
       setPaymentMethod(t.paymentMethod)
       setBankAccountId(String(t.bankAccountId))
+      setCreditCardId(t.creditCardId ? String(t.creditCardId) : '')
       setAmount(String(t.amount))
       setPaymentDate(t.paymentDate || '')
       setStatus(t.status)
       setSeriesInfo(t.seriesId ? { seriesId: t.seriesId, installmentNumber: t.installmentNumber, totalInstallments: t.totalInstallments } : null)
       setCategories(categoriesRes.data.items)
       setBankAccounts(bankAccountsRes.data.items)
+      setCreditCards(creditCardsRes.data)
       setLoading(false)
     }).catch(() => {
       alert('Lançamento não encontrado')
@@ -87,6 +93,7 @@ export default function EditTransactionPage() {
         amount: Number(amount),
         paymentDate: paymentDate || null,
         status,
+        creditCardId: paymentMethod === 'Credit' && creditCardId ? Number(creditCardId) : null,
       })
       router.push('/transactions')
     } catch (err) {
@@ -157,6 +164,13 @@ export default function EditTransactionPage() {
           <FormSelect label="Forma de pagamento" value={paymentMethod} onChange={setPaymentMethod}>
             {PAYMENT_METHODS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </FormSelect>
+
+          {paymentMethod === 'Credit' && creditCards.length > 0 && (
+            <FormSelect label="Cartão de crédito (opcional)" value={creditCardId} onChange={setCreditCardId}>
+              <option value="">Nenhum</option>
+              {creditCards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </FormSelect>
+          )}
 
           <FormSelect label="Conta bancária" value={bankAccountId} onChange={setBankAccountId}>
             {bankAccounts.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}

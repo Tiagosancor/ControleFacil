@@ -19,6 +19,7 @@ export default function AppLayout({ children }) {
     { href: '/monthly-goals', label: 'Meta Mensal' },
     { href: '/bank-accounts', label: 'Contas Bancárias' },
     { href: '/investments', label: 'Investimentos' },
+    { href: '/long-term-goals', label: 'Metas de Longo Prazo' },
   ]
 
   if (loading) {

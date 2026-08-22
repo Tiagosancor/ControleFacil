@@ -93,12 +93,18 @@ function ChartTooltip({ active, payload }) {
   )
 }
 
+function formatDueDate(iso) {
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
+}
+
 export default function DashboardPage() {
   const now = new Date()
   const [year, setYear] = useState(String(now.getFullYear()))
   const [month, setMonth] = useState(String(now.getMonth() + 1))
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [dueSoon, setDueSoon] = useState([])
 
   useEffect(() => {
     let cancelled = false
@@ -109,6 +115,14 @@ export default function DashboardPage() {
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [year, month])
+
+  // Independente do filtro de Ano/Mês acima — "vencendo em breve" é sempre relativo a
+  // hoje, não ao período selecionado no resumo do mês.
+  useEffect(() => {
+    dashboardService.getDueSoon()
+      .then(res => setDueSoon(res.data))
+      .catch(() => {})
+  }, [])
 
   const chartData = (summary?.categoryBreakdown ?? [])
     .map(b => ({
@@ -138,6 +152,27 @@ export default function DashboardPage() {
           </FormSelect>
         </div>
       </Card>
+
+      {dueSoon.length > 0 && (
+        <Card className="mb-6 bg-gold-wash border-gold/30">
+          <p className="font-semibold text-gold mb-2">
+            {dueSoon.length} lançamento(s) pendente(s) vencendo em breve
+          </p>
+          <ul className="space-y-1">
+            {dueSoon.map(item => (
+              <li key={item.transactionId} className="flex justify-between gap-4 text-sm">
+                <span className="text-text-primary truncate">
+                  {item.description}
+                  {item.isOverdue && <span className="text-terracotta font-medium"> · vencido</span>}
+                </span>
+                <span className="text-text-secondary tabular-nums shrink-0">
+                  {formatCurrency(item.amount)} · {formatDueDate(item.entryDate)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {loading && (
         <>

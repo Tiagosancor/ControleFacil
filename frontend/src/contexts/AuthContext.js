@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
     authService.getCurrentUser()
       .then(res => {
         setUser(res.data)
-        router.push('/transactions')
+        router.push('/')
       })
   }
 

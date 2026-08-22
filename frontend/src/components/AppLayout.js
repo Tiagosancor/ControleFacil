@@ -18,6 +18,7 @@ export default function AppLayout({ children }) {
     { href: '/category-budgets', label: 'Orçamentos' },
     { href: '/monthly-goals', label: 'Meta Mensal' },
     { href: '/bank-accounts', label: 'Contas Bancárias' },
+    { href: '/investments', label: 'Investimentos' },
   ]
 
   if (loading) {

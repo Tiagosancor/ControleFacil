@@ -264,13 +264,19 @@ export default function DashboardPage() {
       {!loading && summary && (
         <>
           <Card className="mb-6 bg-gradient-to-b from-primary-soft to-surface">
-            <p className="text-sm text-text-secondary mb-1">Saldo total</p>
-            <p className={`text-4xl font-heading font-medium tabular-nums ${summary.totalBalance >= 0 ? 'text-primary' : 'text-expense'}`}>
-              {formatCurrency(summary.totalBalance)}
+            <p className="text-sm text-text-secondary mb-1">Patrimônio Total</p>
+            <p className={`text-4xl font-heading font-medium tabular-nums ${summary.totalBalance + summary.totalInvestments >= 0 ? 'text-primary' : 'text-expense'}`}>
+              {formatCurrency(summary.totalBalance + summary.totalInvestments)}
             </p>
-            <p className="text-xs text-text-secondary mt-1">
-              Saldo inicial das contas + lançamentos já pagos, sem limitar ao mês selecionado
-            </p>
+            {summary.totalInvestments !== 0 ? (
+              <p className="text-xs text-text-secondary mt-1">
+                Contas: {formatCurrency(summary.totalBalance)} · Investimentos: {formatCurrency(summary.totalInvestments)}
+              </p>
+            ) : (
+              <p className="text-xs text-text-secondary mt-1">
+                Saldo inicial das contas + lançamentos já pagos, sem limitar ao mês selecionado
+              </p>
+            )}
           </Card>
 
           <div className="flex justify-between items-center mb-2">

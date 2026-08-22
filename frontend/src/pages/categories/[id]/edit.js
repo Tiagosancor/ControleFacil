@@ -28,6 +28,11 @@ export default function EditCategoryPage() {
       categoryService.list({ includeInactive: false, page: 1, pageSize: 200 }),
     ]).then(([categoryRes, listRes]) => {
       const category = categoryRes.data
+      if (category.isSystem) {
+        alert('Categorias de sistema não podem ser editadas.')
+        router.push('/categories')
+        return
+      }
       setName(category.name)
       setType(category.type)
       setParentCategoryId(category.parentCategoryId ? String(category.parentCategoryId) : '')

@@ -7,6 +7,7 @@ import { bankAccountService } from '@/services/bankAccountService'
 import { creditCardService } from '@/services/creditCardService'
 import FormInput from '@/components/FormInput'
 import FormSelect from '@/components/FormSelect'
+import CategoryPicker from '@/components/CategoryPicker'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 
@@ -17,10 +18,6 @@ const PAYMENT_METHODS = [
   { value: 'Pix', label: 'Pix' },
   { value: 'BankTransfer', label: 'Transferência' },
 ]
-
-function categoryLabel(c) {
-  return c.parentCategoryName ? `${c.parentCategoryName} > ${c.name}` : c.name
-}
 
 export default function NewTransactionPage() {
   const [categories, setCategories] = useState([])
@@ -97,9 +94,7 @@ export default function NewTransactionPage() {
         <form onSubmit={submit}>
           <FormInput label="Data do lançamento" type="date" value={entryDate} onChange={setEntryDate} />
 
-          <FormSelect label="Categoria" value={categoryId} onChange={setCategoryId} error={errors.categoryId}>
-            {categories.map(c => <option key={c.id} value={c.id}>{categoryLabel(c)}</option>)}
-          </FormSelect>
+          <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} error={errors.categoryId} />
 
           <FormInput label="Descrição" value={description} onChange={setDescription} error={errors.description} />
 

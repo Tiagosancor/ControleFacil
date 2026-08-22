@@ -5,6 +5,7 @@ import { categoryService } from '@/services/categoryService'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Skeleton from '@/components/ui/Skeleton'
+import { CategoryCircle } from '@/components/CategoryPicker'
 
 export default function CategoriesPage() {
   const [items, setItems] = useState([])
@@ -65,7 +66,15 @@ export default function CategoriesPage() {
               <tbody>
                 {items.map(category => (
                   <tr key={category.id} className="border-b border-border hover:bg-background">
-                    <td className="p-3">{category.name}</td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        <CategoryCircle category={category} className="h-7 w-7" />
+                        <span>{category.name}</span>
+                        {category.isSystem && (
+                          <span className="text-xs bg-primary-soft text-primary rounded-full px-2 py-0.5">Sistema</span>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-3">
                       <span className={category.type === 'Income' ? 'text-income' : 'text-expense'}>
                         {category.type === 'Income' ? 'Receita' : 'Despesa'}
@@ -74,7 +83,9 @@ export default function CategoriesPage() {
                     <td className="p-3 text-text-secondary">{category.parentCategoryName || '—'}</td>
                     <td className="p-3">{category.isActive ? 'Ativa' : 'Inativa'}</td>
                     <td className="p-3">
-                      <Link href={`/categories/${category.id}/edit`} className="text-link">Editar</Link>
+                      {!category.isSystem && (
+                        <Link href={`/categories/${category.id}/edit`} className="text-link">Editar</Link>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -83,13 +94,21 @@ export default function CategoriesPage() {
           </Card>
 
           <div className="flex flex-col gap-2 md:hidden">
-            {items.map(category => (
-              <Link key={category.id} href={`/categories/${category.id}/edit`}>
+            {items.map(category => {
+              const content = (
                 <Card>
                   <div className="flex justify-between items-start gap-2">
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{category.name}</p>
-                      <p className="text-xs text-text-secondary mt-1">{category.parentCategoryName || 'Categoria raiz'}</p>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <CategoryCircle category={category} className="h-8 w-8" />
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">
+                          {category.name}
+                          {category.isSystem && (
+                            <span className="ml-2 text-xs bg-primary-soft text-primary rounded-full px-2 py-0.5">Sistema</span>
+                          )}
+                        </p>
+                        <p className="text-xs text-text-secondary mt-1">{category.parentCategoryName || 'Categoria raiz'}</p>
+                      </div>
                     </div>
                     <span className={`text-sm shrink-0 ${category.type === 'Income' ? 'text-income' : 'text-expense'}`}>
                       {category.type === 'Income' ? 'Receita' : 'Despesa'}
@@ -97,8 +116,11 @@ export default function CategoriesPage() {
                   </div>
                   {!category.isActive && <p className="text-xs text-text-muted mt-1">Inativa</p>}
                 </Card>
-              </Link>
-            ))}
+              )
+              return category.isSystem
+                ? <div key={category.id}>{content}</div>
+                : <Link key={category.id} href={`/categories/${category.id}/edit`}>{content}</Link>
+            })}
           </div>
         </>
       )}

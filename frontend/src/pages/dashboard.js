@@ -9,11 +9,14 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import Link from 'next/link'
 import AppLayout from '@/components/AppLayout'
 import { dashboardService } from '@/services/dashboardService'
+import { categoryBudgetService } from '@/services/categoryBudgetService'
 import Card from '@/components/ui/Card'
 import FormSelect from '@/components/FormSelect'
 import Skeleton from '@/components/ui/Skeleton'
+import BudgetProgressBar from '@/components/BudgetProgressBar'
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -105,6 +108,7 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [dueSoon, setDueSoon] = useState([])
+  const [budgets, setBudgets] = useState([])
 
   useEffect(() => {
     let cancelled = false
@@ -114,6 +118,12 @@ export default function DashboardPage() {
       .catch(() => { if (!cancelled) alert('Falha ao carregar o resumo do mês') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
+  }, [year, month])
+
+  useEffect(() => {
+    categoryBudgetService.list({ year, month })
+      .then(res => setBudgets(res.data))
+      .catch(() => {})
   }, [year, month])
 
   // Independente do filtro de Ano/Mês acima — "vencendo em breve" é sempre relativo a
@@ -255,6 +265,26 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             )}
           </Card>
+
+          {budgets.length > 0 && (
+            <Card className="mt-6">
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm text-text-secondary">Orçamento por categoria</p>
+                <Link href="/category-budgets" className="text-xs text-link">Gerenciar</Link>
+              </div>
+              <div className="flex flex-col gap-4">
+                {budgets.map(budget => (
+                  <BudgetProgressBar
+                    key={budget.id}
+                    categoryName={budget.categoryName}
+                    spent={budget.spent}
+                    limitAmount={budget.limitAmount}
+                    percentage={budget.percentage}
+                  />
+                ))}
+              </div>
+            </Card>
+          )}
         </>
       )}
     </AppLayout>

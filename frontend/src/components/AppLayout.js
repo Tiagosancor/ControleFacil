@@ -13,6 +13,7 @@ export default function AppLayout({ children }) {
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/transactions', label: 'Lançamentos' },
     { href: '/categories', label: 'Categorias' },
+    { href: '/category-budgets', label: 'Orçamentos' },
     { href: '/bank-accounts', label: 'Contas Bancárias' },
   ]
 

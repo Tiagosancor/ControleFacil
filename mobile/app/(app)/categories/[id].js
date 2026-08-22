@@ -27,6 +27,11 @@ export default function EditCategoryScreen() {
       categoryService.list({ includeInactive: false, page: 1, pageSize: 200 }),
     ]).then(([categoryRes, listRes]) => {
       const category = categoryRes.data;
+      if (category.isSystem) {
+        Alert.alert('Categorias de sistema não podem ser editadas.');
+        router.back();
+        return;
+      }
       setName(category.name);
       setType(category.type);
       setParentCategoryId(category.parentCategoryId ? String(category.parentCategoryId) : '');

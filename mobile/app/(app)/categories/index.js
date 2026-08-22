@@ -4,6 +4,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { categoryService } from '@/services/categoryService';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import { CategoryCircle } from '@/components/CategoryPicker';
 
 export default function CategoriesScreen() {
   const router = useRouter();
@@ -48,14 +49,24 @@ export default function CategoriesScreen() {
           <Text className="text-sm text-text-secondary text-center mt-8">Nenhuma categoria encontrada.</Text>
         )}
         renderItem={({ item }) => (
-          <Pressable onPress={() => router.push(`/categories/${item.id}`)}>
+          <Pressable onPress={() => !item.isSystem && router.push(`/categories/${item.id}`)}>
             <Card>
               <View className="flex-row justify-between items-center">
-                <View className="flex-1">
-                  <Text className="text-text-primary font-medium">{item.name}</Text>
-                  <Text className="text-text-secondary text-xs mt-1">
-                    {item.parentCategoryName || 'Categoria raiz'}
-                  </Text>
+                <View className="flex-row items-center gap-2 flex-1">
+                  <CategoryCircle category={item} size={32} />
+                  <View className="flex-1">
+                    <View className="flex-row items-center gap-2">
+                      <Text className="text-text-primary font-medium">{item.name}</Text>
+                      {item.isSystem && (
+                        <View className="bg-accent/10 rounded-full px-2 py-0.5">
+                          <Text className="text-accent text-xs">Sistema</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text className="text-text-secondary text-xs mt-1">
+                      {item.parentCategoryName || 'Categoria raiz'}
+                    </Text>
+                  </View>
                 </View>
                 <Text className={item.type === 'Income' ? 'text-income' : 'text-expense'}>
                   {item.type === 'Income' ? 'Receita' : 'Despesa'}

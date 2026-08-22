@@ -6,6 +6,7 @@ import { categoryService } from '@/services/categoryService';
 import { bankAccountService } from '@/services/bankAccountService';
 import FormInput from '@/components/FormInput';
 import FormSelect, { SelectItem } from '@/components/FormSelect';
+import CategoryPicker from '@/components/CategoryPicker';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
@@ -16,10 +17,6 @@ const PAYMENT_METHODS = [
   { value: 'Pix', label: 'Pix' },
   { value: 'BankTransfer', label: 'Transferência' },
 ];
-
-function categoryLabel(c) {
-  return c.parentCategoryName ? `${c.parentCategoryName} > ${c.name}` : c.name;
-}
 
 export default function NewTransactionScreen() {
   const router = useRouter();
@@ -98,9 +95,7 @@ export default function NewTransactionScreen() {
           placeholder="2026-01-31"
         />
 
-        <FormSelect label="Categoria" selectedValue={categoryId} onValueChange={setCategoryId} error={errors.categoryId}>
-          {categories.map(c => <SelectItem key={c.id} label={categoryLabel(c)} value={String(c.id)} />)}
-        </FormSelect>
+        <CategoryPicker categories={categories} selectedValue={categoryId} onValueChange={setCategoryId} error={errors.categoryId} />
 
         <FormInput label="Descrição" value={description} onChangeText={setDescription} error={errors.description} />
 

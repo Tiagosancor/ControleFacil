@@ -157,6 +157,7 @@ app.MapCategoryBudgetEndpoints();
 app.MapMonthlyGoalEndpoints();
 app.MapInvestmentCategoryEndpoints();
 app.MapInvestmentEntryEndpoints();
+app.MapLongTermGoalEndpoints();
 
 try
 {

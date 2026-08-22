@@ -12,5 +12,6 @@ public interface IUnitOfWork
     IMonthlyGoalRepository MonthlyGoals { get; }
     IInvestmentCategoryRepository InvestmentCategories { get; }
     IInvestmentEntryRepository InvestmentEntries { get; }
+    ILongTermGoalRepository LongTermGoals { get; }
     Task<int> SaveChangesAsync();
 }

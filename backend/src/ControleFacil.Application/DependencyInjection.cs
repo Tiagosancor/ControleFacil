@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IMonthlyGoalService, MonthlyGoalService>();
         services.AddScoped<IInvestmentCategoryService, InvestmentCategoryService>();
         services.AddScoped<IInvestmentEntryService, InvestmentEntryService>();
+        services.AddScoped<ILongTermGoalService, LongTermGoalService>();
 
         services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
         services.AddScoped<IValidator<LoginDto>, LoginDtoValidator>();
@@ -40,6 +41,8 @@ public static class DependencyInjection
         services.AddScoped<IValidator<InvestmentCategoryUpdateDto>, InvestmentCategoryUpdateDtoValidator>();
         services.AddScoped<IValidator<InvestmentEntryCreateDto>, InvestmentEntryCreateDtoValidator>();
         services.AddScoped<IValidator<InvestmentEntryUpdateDto>, InvestmentEntryUpdateDtoValidator>();
+        services.AddScoped<IValidator<LongTermGoalCreateDto>, LongTermGoalCreateDtoValidator>();
+        services.AddScoped<IValidator<LongTermGoalUpdateDto>, LongTermGoalUpdateDtoValidator>();
 
         return services;
     }

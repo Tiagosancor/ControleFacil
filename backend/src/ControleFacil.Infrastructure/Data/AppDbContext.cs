@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<MonthlyGoal> MonthlyGoals => Set<MonthlyGoal>();
     public DbSet<InvestmentCategory> InvestmentCategories => Set<InvestmentCategory>();
     public DbSet<InvestmentEntry> InvestmentEntries => Set<InvestmentEntry>();
+    public DbSet<LongTermGoal> LongTermGoals => Set<LongTermGoal>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,5 +36,6 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new MonthlyGoalConfiguration());
         modelBuilder.ApplyConfiguration(new InvestmentCategoryConfiguration());
         modelBuilder.ApplyConfiguration(new InvestmentEntryConfiguration());
+        modelBuilder.ApplyConfiguration(new LongTermGoalConfiguration());
     }
 }

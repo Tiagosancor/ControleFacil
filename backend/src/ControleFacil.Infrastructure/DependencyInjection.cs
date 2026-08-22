@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IMonthlyGoalRepository, MonthlyGoalRepository>();
         services.AddScoped<IInvestmentCategoryRepository, InvestmentCategoryRepository>();
         services.AddScoped<IInvestmentEntryRepository, InvestmentEntryRepository>();
+        services.AddScoped<ILongTermGoalRepository, LongTermGoalRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IPasswordHasher, PasswordHasherService>();

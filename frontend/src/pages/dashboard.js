@@ -96,9 +96,47 @@ function ChartTooltip({ active, payload }) {
   )
 }
 
+function formatCompactCurrency(value) {
+  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 })
+}
+
+function HistoricalTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="bg-surface border border-border rounded-md px-3 py-2 text-sm shadow-sm">
+      <p className="font-medium text-text-primary mb-1">{label}</p>
+      {payload.map(p => (
+        <p key={p.dataKey} className={p.dataKey === 'income' ? 'text-income' : 'text-expense'}>
+          {p.dataKey === 'income' ? 'Receita' : 'Despesa'}: {formatCurrency(p.value)}
+        </p>
+      ))}
+    </div>
+  )
+}
+
 function formatDueDate(iso) {
   const [y, m, d] = iso.split('-')
   return `${d}/${m}/${y}`
+}
+
+function formatPercent(value) {
+  const sign = value > 0 ? '+' : ''
+  return `${sign}${value.toFixed(1).replace('.', ',')}%`
+}
+
+// Pra despesa, ficar ACIMA da meta é ruim (desvio positivo = vermelho); pra receita e
+// lucro é o contrário (desvio positivo = verde). deviationPercent vem null quando a
+// meta é zero/negativa (ver comentário no backend) — nesse caso não mostra nada em vez
+// de um percentual sem leitura confiável.
+function GoalDeviation({ comparison, invert = false }) {
+  if (!comparison || comparison.deviationPercent === null) return null
+  const dev = comparison.deviationPercent
+  const isGood = invert ? dev <= 0 : dev >= 0
+  return (
+    <p className={`text-xs mt-1 ${isGood ? 'text-primary' : 'text-terracotta'}`}>
+      Meta: {formatCurrency(comparison.goal)} · {formatPercent(dev)}
+    </p>
+  )
 }
 
 export default function DashboardPage() {
@@ -109,6 +147,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [dueSoon, setDueSoon] = useState([])
   const [budgets, setBudgets] = useState([])
+  const [goalComparison, setGoalComparison] = useState(null)
+  const [historical, setHistorical] = useState([])
+  const [analyses, setAnalyses] = useState([])
 
   const loadSummary = () => {
     setLoading(true)
@@ -119,17 +160,26 @@ export default function DashboardPage() {
   }
   const loadBudgets = () => categoryBudgetService.list({ year, month }).then(res => setBudgets(res.data)).catch(() => {})
   const loadDueSoon = () => dashboardService.getDueSoon().then(res => setDueSoon(res.data)).catch(() => {})
+  const loadGoalComparison = () => dashboardService.getGoalComparison({ year, month }).then(res => setGoalComparison(res.data)).catch(() => setGoalComparison(null))
+  const loadHistorical = () => dashboardService.getHistorical({ year, month, monthsBack: 3 }).then(res => setHistorical(res.data)).catch(() => {})
+  const loadAnalyses = () => dashboardService.getAnalyses({ year, month }).then(res => setAnalyses(res.data)).catch(() => {})
 
   useEffect(() => { loadSummary() }, [year, month])
   useEffect(() => { loadBudgets() }, [year, month])
+  useEffect(() => { loadGoalComparison() }, [year, month])
+  useEffect(() => { loadHistorical() }, [year, month])
+  useEffect(() => { loadAnalyses() }, [year, month])
   // Independente do filtro de Ano/Mês acima — "vencendo em breve" é sempre relativo a
   // hoje, não ao período selecionado no resumo do mês.
   useEffect(() => { loadDueSoon() }, [])
 
   // Registro rápido (Sprint H, FAB no AppLayout) cria numa página qualquer — se for
-  // esta, atualiza saldo/orçamentos/vencimentos sozinho.
+  // esta, atualiza tudo que depende de lançamentos sozinho.
   useEffect(() => {
-    const handler = () => { loadSummary(); loadBudgets(); loadDueSoon() }
+    const handler = () => {
+      loadSummary(); loadBudgets(); loadDueSoon()
+      loadGoalComparison(); loadHistorical(); loadAnalyses()
+    }
     window.addEventListener('semeiagrana:transaction-created', handler)
     return () => window.removeEventListener('semeiagrana:transaction-created', handler)
   }, [year, month])
@@ -141,6 +191,12 @@ export default function DashboardPage() {
       value: b.type === 'Expense' ? -b.total : b.total,
     }))
     .sort((a, b) => b.value - a.value)
+
+  const historicalData = historical.map(h => ({
+    name: `${MONTHS[h.month - 1].slice(0, 3)}/${String(h.year).slice(2)}`,
+    income: h.totalIncome,
+    expense: h.totalExpense,
+  }))
 
   const chartHeight = Math.max(160, chartData.length * 48)
 
@@ -217,21 +273,27 @@ export default function DashboardPage() {
             </p>
           </Card>
 
-          <p className="text-sm text-text-secondary mb-2">Resumo do mês</p>
+          <div className="flex justify-between items-center mb-2">
+            <p className="text-sm text-text-secondary">Resumo do mês {goalComparison && '(Realizado x Meta)'}</p>
+            {!goalComparison && <Link href="/monthly-goals" className="text-xs text-link">Definir meta</Link>}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <Card>
               <p className="text-sm text-text-secondary mb-1">Receitas do mês</p>
               <p className="text-2xl font-heading font-semibold tabular-nums text-income">{formatCurrency(summary.totalIncome)}</p>
+              <GoalDeviation comparison={goalComparison?.income} />
             </Card>
             <Card>
               <p className="text-sm text-text-secondary mb-1">Despesas do mês</p>
               <p className="text-2xl font-heading font-semibold tabular-nums text-expense">{formatCurrency(summary.totalExpense)}</p>
+              <GoalDeviation comparison={goalComparison?.expense} invert />
             </Card>
             <Card>
               <p className="text-sm text-text-secondary mb-1">Saldo do mês</p>
               <p className={`text-2xl font-heading font-semibold tabular-nums ${summary.balance >= 0 ? 'text-primary' : 'text-expense'}`}>
                 {formatCurrency(summary.balance)}
               </p>
+              <GoalDeviation comparison={goalComparison?.profit} />
             </Card>
           </div>
 
@@ -265,6 +327,56 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             )}
           </Card>
+
+          {historicalData.length > 0 && (
+            <Card className="mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-text-secondary">Comparativo histórico (últimos {historicalData.length} meses)</p>
+                <div className="flex items-center gap-3 text-xs text-text-secondary">
+                  <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-income inline-block" />Receita</span>
+                  <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-expense inline-block" />Despesa</span>
+                </div>
+              </div>
+              {/* key força remount a cada troca de Ano/Mês: o <Bar> padrão do Recharts (ao
+                  contrário do shape customizado do gráfico acima) não redesenha as barras
+                  de forma confiável quando só o data prop muda — confirmado visualmente
+                  (eixo X atualizava, barras ficavam com altura zero). Remount contorna. */}
+              <ResponsiveContainer key={`${year}-${month}`} width="100%" height={220}>
+                <BarChart data={historicalData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+                  <CartesianGrid vertical={false} stroke={GRID_COLOR} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: AXIS_COLOR }} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+                  <YAxis
+                    tickFormatter={formatCompactCurrency}
+                    tick={{ fontSize: 11, fill: AXIS_COLOR }}
+                    axisLine={{ stroke: GRID_COLOR }}
+                    tickLine={false}
+                    width={64}
+                  />
+                  <Tooltip content={<HistoricalTooltip />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
+                  <Bar dataKey="income" fill={INCOME_COLOR} radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey="expense" fill={EXPENSE_COLOR} radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
+
+          {analyses.length > 0 && (
+            <Card className="mt-6">
+              <p className="text-sm text-text-secondary mb-4">Análises automáticas</p>
+              <ul className="flex flex-col gap-2">
+                {analyses.map((a, i) => (
+                  <li
+                    key={i}
+                    className={`text-sm flex items-start gap-2 ${a.type === 'positive' ? 'text-primary' : a.type === 'warning' ? 'text-gold' : 'text-terracotta'
+                      }`}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-current mt-1.5 shrink-0" aria-hidden="true" />
+                    {a.message}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
 
           {budgets.length > 0 && (
             <Card className="mt-6">

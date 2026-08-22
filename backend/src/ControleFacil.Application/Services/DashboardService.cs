@@ -1,3 +1,4 @@
+using System.Globalization;
 using ControleFacil.Application.Dtos;
 using ControleFacil.Application.Exceptions;
 using ControleFacil.Application.Interfaces;
@@ -10,6 +11,8 @@ namespace ControleFacil.Application.Services;
 
 public class DashboardService : IDashboardService
 {
+    private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
     private readonly DueAlertOptions _dueAlertOptions;
@@ -97,4 +100,105 @@ public class DashboardService : IDashboardService
             .Select(t => new DueAlertItemDto(t.Id, t.Description, t.Amount, t.EntryDate, t.EntryDate < today))
             .ToList();
     }
+
+    // Retorna null quando o usuário não definiu meta pro mês (Sprint I é opcional) — o
+    // frontend mostra um convite pra definir uma em vez de tentar comparar contra zero.
+    public async Task<MonthlyGoalComparisonDto?> GetGoalComparisonAsync(int year, int month)
+    {
+        var goal = await _unitOfWork.MonthlyGoals.Query()
+            .FirstOrDefaultAsync(g => g.UserId == _currentUser.UserId && g.Year == year && g.Month == month);
+        if (goal is null)
+            return null;
+
+        var summary = await GetMonthlySummaryAsync(year, month);
+        var profitGoal = goal.IncomeGoal - goal.ExpenseGoal;
+
+        return new MonthlyGoalComparisonDto(
+            BuildComparison(summary.TotalIncome, goal.IncomeGoal),
+            BuildComparison(summary.TotalExpense, goal.ExpenseGoal),
+            BuildComparison(summary.Balance, profitGoal));
+    }
+
+    private static GoalComparisonDto BuildComparison(decimal realized, decimal goal)
+    {
+        var deviationPercent = goal > 0 ? Math.Round((realized - goal) / goal * 100, 1) : (decimal?)null;
+        return new GoalComparisonDto(realized, goal, deviationPercent);
+    }
+
+    // Mês selecionado + monthsBack anteriores, em ordem cronológica (mais antigo
+    // primeiro) — pronto pro eixo X de um gráfico de barras.
+    public async Task<IReadOnlyList<HistoricalMonthDto>> GetHistoricalSummaryAsync(int year, int month, int monthsBack = 3)
+    {
+        if (month is < 1 or > 12)
+            throw new BusinessRuleException("Mês deve estar entre 1 e 12.");
+        if (monthsBack is < 0 or > 24)
+            throw new BusinessRuleException("monthsBack deve estar entre 0 e 24.");
+
+        var anchor = new DateOnly(year, month, 1);
+        var result = new List<HistoricalMonthDto>();
+        for (var i = monthsBack; i >= 0; i--)
+        {
+            var cursor = anchor.AddMonths(-i);
+            var summary = await GetMonthlySummaryAsync(cursor.Year, cursor.Month);
+            result.Add(new HistoricalMonthDto(cursor.Year, cursor.Month, summary.TotalIncome, summary.TotalExpense));
+        }
+
+        return result;
+    }
+
+    // Regras condicionais simples (sem IA/LLM, por design — mais previsível), combinando
+    // a comparação com meta (se houver) e o mês anterior. Constrói em cima dos dois
+    // métodos acima, propositalmente implementados primeiro.
+    public async Task<IReadOnlyList<AnalysisDto>> GetAutomaticAnalysesAsync(int year, int month)
+    {
+        var analyses = new List<AnalysisDto>();
+        var summary = await GetMonthlySummaryAsync(year, month);
+        var goalComparison = await GetGoalComparisonAsync(year, month);
+        var historical = await GetHistoricalSummaryAsync(year, month, monthsBack: 1);
+
+        if (summary.Balance < 0)
+            analyses.Add(new AnalysisDto("Você gastou mais do que ganhou este mês.", "negative"));
+        else
+            analyses.Add(new AnalysisDto("Mês positivo: suas receitas superaram as despesas.", "positive"));
+
+        if (goalComparison is not null)
+        {
+            if (goalComparison.Expense.Goal > 0)
+            {
+                if (summary.TotalExpense > goalComparison.Expense.Goal)
+                {
+                    var over = (summary.TotalExpense - goalComparison.Expense.Goal) / goalComparison.Expense.Goal * 100;
+                    analyses.Add(new AnalysisDto($"Você ultrapassou a meta de despesa em {FormatPercent(over)}.", "warning"));
+                }
+                else
+                {
+                    analyses.Add(new AnalysisDto("Suas despesas ficaram dentro da meta definida.", "positive"));
+                }
+            }
+
+            if (goalComparison.Income.Goal > 0 && summary.TotalIncome < goalComparison.Income.Goal)
+            {
+                var under = (goalComparison.Income.Goal - summary.TotalIncome) / goalComparison.Income.Goal * 100;
+                analyses.Add(new AnalysisDto($"Sua receita ficou {FormatPercent(under)} abaixo da meta.", "warning"));
+            }
+        }
+
+        if (historical.Count == 2)
+        {
+            var previous = historical[0];
+            var current = historical[1];
+            if (previous.TotalExpense > 0)
+            {
+                var change = (current.TotalExpense - previous.TotalExpense) / previous.TotalExpense * 100;
+                if (change > 10)
+                    analyses.Add(new AnalysisDto($"Suas despesas aumentaram {FormatPercent(change)} em relação ao mês anterior.", "warning"));
+                else if (change < -10)
+                    analyses.Add(new AnalysisDto($"Suas despesas caíram {FormatPercent(Math.Abs(change))} em relação ao mês anterior.", "positive"));
+            }
+        }
+
+        return analyses;
+    }
+
+    private static string FormatPercent(decimal value) => Math.Round(value, 1).ToString("0.0", PtBr) + "%";
 }

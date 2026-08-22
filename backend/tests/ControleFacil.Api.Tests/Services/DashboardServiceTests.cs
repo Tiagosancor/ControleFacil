@@ -206,4 +206,210 @@ public class DashboardServiceTests
         // (1000 + 500) de saldo inicial das contas ativas + (300 - 100 + 200) de lançamentos pagos
         Assert.Equal(1900m, summary.TotalBalance);
     }
+
+    [Fact]
+    public async Task GetGoalComparisonAsync_NoGoalSet_ReturnsNull()
+    {
+        var uow = TestUnitOfWorkFactory.Create(out _);
+        var service = new DashboardService(uow, new FakeCurrentUserService(1), Options.Create(new DueAlertOptions()));
+
+        var result = await service.GetGoalComparisonAsync(2026, 3);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetGoalComparisonAsync_ComputesRealizedGoalAndDeviation_ForIncomeExpenseAndProfit()
+    {
+        var uow = TestUnitOfWorkFactory.Create(out _);
+        var service = new DashboardService(uow, new FakeCurrentUserService(1), Options.Create(new DueAlertOptions()));
+
+        var incomeGroup = new Category { Name = "RENDA", Type = CategoryType.Income, UserId = 1, IsActive = true };
+        var expenseGroup = new Category { Name = "DESPESA", Type = CategoryType.Expense, UserId = 1, IsActive = true };
+        await uow.Categories.AddAsync(incomeGroup);
+        await uow.Categories.AddAsync(expenseGroup);
+        await uow.SaveChangesAsync();
+
+        var account = new BankAccount { Name = "Banco", InitialBalance = 0, UserId = 1, IsActive = true };
+        await uow.BankAccounts.AddAsync(account);
+        await uow.SaveChangesAsync();
+
+        var now = DateTime.UtcNow;
+        await uow.Transactions.AddAsync(new Transaction
+        {
+            EntryDate = new DateOnly(2026, 3, 5),
+            CategoryId = incomeGroup.Id,
+            Description = "Salário",
+            PaymentMethod = PaymentMethod.Cash,
+            BankAccountId = account.Id,
+            Amount = 4260m,
+            Status = TransactionStatus.Paid,
+            UserId = 1,
+            CreatedAt = now,
+            UpdatedAt = now,
+        });
+        await uow.Transactions.AddAsync(new Transaction
+        {
+            EntryDate = new DateOnly(2026, 3, 6),
+            CategoryId = expenseGroup.Id,
+            Description = "Aluguel",
+            PaymentMethod = PaymentMethod.Cash,
+            BankAccountId = account.Id,
+            Amount = 3000m,
+            Status = TransactionStatus.Paid,
+            UserId = 1,
+            CreatedAt = now,
+            UpdatedAt = now,
+        });
+        await uow.SaveChangesAsync();
+
+        await uow.MonthlyGoals.AddAsync(new MonthlyGoal
+        {
+            Year = 2026,
+            Month = 3,
+            IncomeGoal = 5000m,
+            ExpenseGoal = 2000m,
+            UserId = 1,
+            CreatedAt = now,
+            UpdatedAt = now,
+        });
+        await uow.SaveChangesAsync();
+
+        var result = await service.GetGoalComparisonAsync(2026, 3);
+
+        Assert.NotNull(result);
+        Assert.Equal(4260m, result!.Income.Realized);
+        Assert.Equal(5000m, result.Income.Goal);
+        Assert.Equal(-14.8m, result.Income.DeviationPercent);
+
+        Assert.Equal(3000m, result.Expense.Realized);
+        Assert.Equal(2000m, result.Expense.Goal);
+        Assert.Equal(50.0m, result.Expense.DeviationPercent);
+
+        // Lucro realizado 4260-3000=1260; meta de lucro 5000-2000=3000
+        Assert.Equal(1260m, result.Profit.Realized);
+        Assert.Equal(3000m, result.Profit.Goal);
+        Assert.Equal(-58.0m, result.Profit.DeviationPercent);
+    }
+
+    [Fact]
+    public async Task GetGoalComparisonAsync_NonPositiveProfitGoal_DeviationPercentIsNull()
+    {
+        var uow = TestUnitOfWorkFactory.Create(out _);
+        var service = new DashboardService(uow, new FakeCurrentUserService(1), Options.Create(new DueAlertOptions()));
+
+        var now = DateTime.UtcNow;
+        // ExpenseGoal igual a IncomeGoal -> meta de lucro é 0, dividir por zero não faz sentido.
+        await uow.MonthlyGoals.AddAsync(new MonthlyGoal
+        {
+            Year = 2026,
+            Month = 3,
+            IncomeGoal = 3000m,
+            ExpenseGoal = 3000m,
+            UserId = 1,
+            CreatedAt = now,
+            UpdatedAt = now,
+        });
+        await uow.SaveChangesAsync();
+
+        var result = await service.GetGoalComparisonAsync(2026, 3);
+
+        Assert.NotNull(result);
+        Assert.Null(result!.Profit.DeviationPercent);
+    }
+
+    [Fact]
+    public async Task GetHistoricalSummaryAsync_ReturnsMonthsInChronologicalOrder_WithYearRollover()
+    {
+        var uow = TestUnitOfWorkFactory.Create(out _);
+        var service = new DashboardService(uow, new FakeCurrentUserService(1), Options.Create(new DueAlertOptions()));
+
+        var result = await service.GetHistoricalSummaryAsync(2026, 1, monthsBack: 3);
+
+        Assert.Equal(4, result.Count);
+        Assert.Equal((2025, 10), (result[0].Year, result[0].Month));
+        Assert.Equal((2025, 11), (result[1].Year, result[1].Month));
+        Assert.Equal((2025, 12), (result[2].Year, result[2].Month));
+        Assert.Equal((2026, 1), (result[3].Year, result[3].Month));
+    }
+
+    [Fact]
+    public async Task GetAutomaticAnalysesAsync_ExpenseExceedsIncome_IncludesNegativeAnalysis()
+    {
+        var uow = TestUnitOfWorkFactory.Create(out _);
+        var service = new DashboardService(uow, new FakeCurrentUserService(1), Options.Create(new DueAlertOptions()));
+
+        var expenseGroup = new Category { Name = "DESPESA", Type = CategoryType.Expense, UserId = 1, IsActive = true };
+        await uow.Categories.AddAsync(expenseGroup);
+        await uow.SaveChangesAsync();
+        var account = new BankAccount { Name = "Banco", InitialBalance = 0, UserId = 1, IsActive = true };
+        await uow.BankAccounts.AddAsync(account);
+        await uow.SaveChangesAsync();
+
+        var now = DateTime.UtcNow;
+        await uow.Transactions.AddAsync(new Transaction
+        {
+            EntryDate = new DateOnly(2026, 3, 5),
+            CategoryId = expenseGroup.Id,
+            Description = "Gasto grande",
+            PaymentMethod = PaymentMethod.Cash,
+            BankAccountId = account.Id,
+            Amount = 5000m,
+            Status = TransactionStatus.Paid,
+            UserId = 1,
+            CreatedAt = now,
+            UpdatedAt = now,
+        });
+        await uow.SaveChangesAsync();
+
+        var analyses = await service.GetAutomaticAnalysesAsync(2026, 3);
+
+        Assert.Contains(analyses, a => a.Type == "negative");
+    }
+
+    [Fact]
+    public async Task GetAutomaticAnalysesAsync_ExpenseOverGoal_IncludesWarningMentioningGoal()
+    {
+        var uow = TestUnitOfWorkFactory.Create(out _);
+        var service = new DashboardService(uow, new FakeCurrentUserService(1), Options.Create(new DueAlertOptions()));
+
+        var expenseGroup = new Category { Name = "DESPESA", Type = CategoryType.Expense, UserId = 1, IsActive = true };
+        await uow.Categories.AddAsync(expenseGroup);
+        await uow.SaveChangesAsync();
+        var account = new BankAccount { Name = "Banco", InitialBalance = 0, UserId = 1, IsActive = true };
+        await uow.BankAccounts.AddAsync(account);
+        await uow.SaveChangesAsync();
+
+        var now = DateTime.UtcNow;
+        await uow.Transactions.AddAsync(new Transaction
+        {
+            EntryDate = new DateOnly(2026, 3, 5),
+            CategoryId = expenseGroup.Id,
+            Description = "Gasto",
+            PaymentMethod = PaymentMethod.Cash,
+            BankAccountId = account.Id,
+            Amount = 3000m,
+            Status = TransactionStatus.Paid,
+            UserId = 1,
+            CreatedAt = now,
+            UpdatedAt = now,
+        });
+        await uow.SaveChangesAsync();
+
+        await uow.MonthlyGoals.AddAsync(new MonthlyGoal
+        {
+            Year = 2026,
+            Month = 3,
+            IncomeGoal = 1m,
+            ExpenseGoal = 2000m,
+            UserId = 1,
+            CreatedAt = now,
+            UpdatedAt = now,
+        });
+        await uow.SaveChangesAsync();
+
+        var analyses = await service.GetAutomaticAnalysesAsync(2026, 3);
+
+        Assert.Contains(analyses, a => a.Type == "warning" && a.Message.Contains("meta de despesa"));
+    }
 }

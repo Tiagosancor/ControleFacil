@@ -1,8 +1,10 @@
 using ControleFacil.Api.Tests.TestHelpers;
+using ControleFacil.Application;
 using ControleFacil.Application.Exceptions;
 using ControleFacil.Application.Services;
 using ControleFacil.Domain.Entities;
 using ControleFacil.Domain.Enums;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace ControleFacil.Api.Tests.Services;
@@ -13,7 +15,7 @@ public class DashboardServiceTests
     public async Task GetMonthlySummaryAsync_AggregatesByMonthAndGroupsByRootCategory()
     {
         var uow = TestUnitOfWorkFactory.Create(out _);
-        var service = new DashboardService(uow, new FakeCurrentUserService(1));
+        var service = new DashboardService(uow, new FakeCurrentUserService(1), Options.Create(new DueAlertOptions()));
 
         var incomeGroup = new Category { Name = "RENDA FAMILIAR", Type = CategoryType.Income, UserId = 1, IsActive = true };
         var expenseGroup = new Category { Name = "DESPESAS COM MORADIA", Type = CategoryType.Expense, UserId = 1, IsActive = true };
@@ -94,7 +96,7 @@ public class DashboardServiceTests
     public async Task GetMonthlySummaryAsync_InvalidMonth_ThrowsBusinessRuleException()
     {
         var uow = TestUnitOfWorkFactory.Create(out _);
-        var service = new DashboardService(uow, new FakeCurrentUserService(1));
+        var service = new DashboardService(uow, new FakeCurrentUserService(1), Options.Create(new DueAlertOptions()));
 
         await Assert.ThrowsAsync<BusinessRuleException>(() => service.GetMonthlySummaryAsync(2026, 13));
     }
@@ -103,7 +105,7 @@ public class DashboardServiceTests
     public async Task GetMonthlySummaryAsync_TotalBalance_SumsInitialBalancePlusPaidTransactions_AcrossAllMonths()
     {
         var uow = TestUnitOfWorkFactory.Create(out _);
-        var service = new DashboardService(uow, new FakeCurrentUserService(1));
+        var service = new DashboardService(uow, new FakeCurrentUserService(1), Options.Create(new DueAlertOptions()));
 
         var incomeGroup = new Category { Name = "RENDA FAMILIAR", Type = CategoryType.Income, UserId = 1, IsActive = true };
         var expenseGroup = new Category { Name = "DESPESAS COM MORADIA", Type = CategoryType.Expense, UserId = 1, IsActive = true };

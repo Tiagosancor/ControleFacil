@@ -23,4 +23,10 @@ public class Transaction
     public User? User { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    // Marca que o alerta de vencimento (Sprint F) já foi enviado por e-mail pra esse
+    // lançamento — garante no-máximo-um envio mesmo com o job rodando de forma
+    // irregular (o processo reinicia a cada deploy/sono do Render, então não dá pra
+    // confiar só em estado em memória). Null = ainda não avisado.
+    public DateTime? DueAlertSentAt { get; set; }
 }

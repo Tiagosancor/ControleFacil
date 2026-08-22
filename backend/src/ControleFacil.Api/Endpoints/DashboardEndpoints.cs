@@ -13,5 +13,11 @@ public static class DashboardEndpoints
             var summary = await service.GetMonthlySummaryAsync(year, month);
             return Results.Ok(summary);
         });
+
+        group.MapGet("/due-soon", async (IDashboardService service) =>
+        {
+            var items = await service.GetDueSoonAsync();
+            return Results.Ok(items);
+        });
     }
 }

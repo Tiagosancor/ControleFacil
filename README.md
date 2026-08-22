@@ -200,6 +200,7 @@ Banco no **Neon** (Postgres serverless), backend na **Render** (Docker), fronten
    | `Cors__AllowedOrigins__0` | a URL da Vercel do passo 3 abaixo (dá pra deixar `http://localhost:3000` por enquanto e ajustar depois) |
    | `Resend__ApiKey` | a API key gerada no [Resend](#configurando-o-resend-recuperação-de-senha) — nunca reutilize chaves de dev em produção |
    | `Frontend__BaseUrl` | a URL da Vercel do passo 3 abaixo (usada para montar o link de `/reset-password?token=...` no e-mail) |
+   | `DueAlerts__DaysBefore` | opcional — dias de antecedência do alerta de vencimento (Sprint F). Default `3` se omitida |
 
    Não defina `PORT` — a Render injeta essa variável sozinha (10000 por padrão) e a API já lê `PORT` automaticamente (com fallback pra 8080 se não existir, usado no `docker-compose` local).
 4. Deploy. A Render expõe a API em algo como `https://controlefacil-api.onrender.com`.

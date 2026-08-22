@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped<IBankAccountService, BankAccountService>();
         services.AddScoped<ITransactionService, TransactionService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IDueAlertService, DueAlertService>();
 
         services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
         services.AddScoped<IValidator<LoginDto>, LoginDtoValidator>();

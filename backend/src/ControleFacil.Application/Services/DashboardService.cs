@@ -4,6 +4,7 @@ using ControleFacil.Application.Interfaces;
 using ControleFacil.Domain.Enums;
 using ControleFacil.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace ControleFacil.Application.Services;
 
@@ -11,11 +12,13 @@ public class DashboardService : IDashboardService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
+    private readonly DueAlertOptions _dueAlertOptions;
 
-    public DashboardService(IUnitOfWork unitOfWork, ICurrentUserService currentUser)
+    public DashboardService(IUnitOfWork unitOfWork, ICurrentUserService currentUser, IOptions<DueAlertOptions> dueAlertOptions)
     {
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
+        _dueAlertOptions = dueAlertOptions.Value;
     }
 
     // Resumo mensal considera TODOS os lançamentos do mês (pagos ou não), refletindo o
@@ -73,5 +76,25 @@ public class DashboardService : IDashboardService
             .SumAsync();
 
         return initialBalanceSum + paidDelta;
+    }
+
+    // Mostra "o que está vencendo" independente do DueAlertSentAt do job de e-mail (Sprint
+    // F): essa é uma leitura ao vivo pra tela, não controla se o e-mail já saiu ou não —
+    // um lançamento continua aparecendo aqui mesmo depois do alerta por e-mail já ter sido
+    // enviado, até ser pago.
+    public async Task<IReadOnlyList<DueAlertItemDto>> GetDueSoonAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var threshold = today.AddDays(_dueAlertOptions.DaysBefore);
+
+        var items = await _unitOfWork.Transactions.Query()
+            .Where(t => t.UserId == _currentUser.UserId && t.Status == TransactionStatus.Pending && t.EntryDate <= threshold)
+            .OrderBy(t => t.EntryDate)
+            .Select(t => new { t.Id, t.Description, t.Amount, t.EntryDate })
+            .ToListAsync();
+
+        return items
+            .Select(t => new DueAlertItemDto(t.Id, t.Description, t.Amount, t.EntryDate, t.EntryDate < today))
+            .ToList();
     }
 }

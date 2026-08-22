@@ -35,5 +35,10 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(t => new { t.UserId, t.EntryDate });
+
+        // Usado pelo job de alertas de vencimento (Sprint F): busca lançamentos
+        // pendentes ainda não avisados com vencimento dentro da janela configurada,
+        // cruzando todos os usuários — não é escopado por UserId como o índice acima.
+        builder.HasIndex(t => new { t.Status, t.DueAlertSentAt, t.EntryDate });
     }
 }

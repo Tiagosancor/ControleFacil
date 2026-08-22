@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using ControleFacil.Application;
 using ControleFacil.Application.Interfaces;
 using ControleFacil.Domain.Interfaces;
 using ControleFacil.Infrastructure.Auth;
@@ -31,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenService, JwtTokenService>();
 
         services.Configure<ResendOptions>(configuration.GetSection("Resend"));
+        services.Configure<DueAlertOptions>(configuration.GetSection("DueAlerts"));
         services.AddHttpClient<IEmailService, ResendEmailService>((sp, client) =>
         {
             var options = sp.GetRequiredService<IOptions<ResendOptions>>().Value;

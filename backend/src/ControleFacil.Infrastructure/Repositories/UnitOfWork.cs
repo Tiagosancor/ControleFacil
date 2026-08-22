@@ -15,7 +15,8 @@ public class UnitOfWork : IUnitOfWork
         ITransactionRepository transactions,
         ITransactionSeriesRepository transactionSeries,
         IPasswordResetTokenRepository passwordResetTokens,
-        ICategoryBudgetRepository categoryBudgets)
+        ICategoryBudgetRepository categoryBudgets,
+        IMonthlyGoalRepository monthlyGoals)
     {
         _context = context;
         Users = users;
@@ -25,6 +26,7 @@ public class UnitOfWork : IUnitOfWork
         TransactionSeries = transactionSeries;
         PasswordResetTokens = passwordResetTokens;
         CategoryBudgets = categoryBudgets;
+        MonthlyGoals = monthlyGoals;
     }
 
     public IUserRepository Users { get; }
@@ -34,6 +36,7 @@ public class UnitOfWork : IUnitOfWork
     public ITransactionSeriesRepository TransactionSeries { get; }
     public IPasswordResetTokenRepository PasswordResetTokens { get; }
     public ICategoryBudgetRepository CategoryBudgets { get; }
+    public IMonthlyGoalRepository MonthlyGoals { get; }
 
     public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();
 }

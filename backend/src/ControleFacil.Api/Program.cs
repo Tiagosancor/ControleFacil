@@ -154,6 +154,7 @@ app.MapBankAccountEndpoints();
 app.MapTransactionEndpoints();
 app.MapDashboardEndpoints();
 app.MapCategoryBudgetEndpoints();
+app.MapMonthlyGoalEndpoints();
 
 try
 {

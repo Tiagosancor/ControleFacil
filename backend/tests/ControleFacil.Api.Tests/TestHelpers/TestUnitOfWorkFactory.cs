@@ -23,6 +23,7 @@ public static class TestUnitOfWorkFactory
             new TransactionRepository(context),
             new TransactionSeriesRepository(context),
             new PasswordResetTokenRepository(context),
-            new CategoryBudgetRepository(context));
+            new CategoryBudgetRepository(context),
+            new MonthlyGoalRepository(context));
     }
 }

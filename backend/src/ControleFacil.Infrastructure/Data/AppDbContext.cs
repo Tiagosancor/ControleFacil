@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<TransactionSeries> TransactionSeries => Set<TransactionSeries>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<CategoryBudget> CategoryBudgets => Set<CategoryBudget>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,5 +28,6 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new TransactionSeriesConfiguration());
         modelBuilder.ApplyConfiguration(new TransactionConfiguration());
         modelBuilder.ApplyConfiguration(new PasswordResetTokenConfiguration());
+        modelBuilder.ApplyConfiguration(new CategoryBudgetConfiguration());
     }
 }

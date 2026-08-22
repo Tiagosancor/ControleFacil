@@ -8,5 +8,6 @@ public interface IUnitOfWork
     ITransactionRepository Transactions { get; }
     ITransactionSeriesRepository TransactionSeries { get; }
     IPasswordResetTokenRepository PasswordResetTokens { get; }
+    ICategoryBudgetRepository CategoryBudgets { get; }
     Task<int> SaveChangesAsync();
 }

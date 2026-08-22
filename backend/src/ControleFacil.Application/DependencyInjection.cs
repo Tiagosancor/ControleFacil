@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.AddScoped<ITransactionService, TransactionService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IDueAlertService, DueAlertService>();
+        services.AddScoped<ICategoryBudgetService, CategoryBudgetService>();
 
         services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
         services.AddScoped<IValidator<LoginDto>, LoginDtoValidator>();
@@ -28,6 +29,8 @@ public static class DependencyInjection
         services.AddScoped<IValidator<BankAccountUpdateDto>, BankAccountUpdateDtoValidator>();
         services.AddScoped<IValidator<TransactionCreateDto>, TransactionCreateDtoValidator>();
         services.AddScoped<IValidator<TransactionUpdateDto>, TransactionUpdateDtoValidator>();
+        services.AddScoped<IValidator<CategoryBudgetCreateDto>, CategoryBudgetCreateDtoValidator>();
+        services.AddScoped<IValidator<CategoryBudgetUpdateDto>, CategoryBudgetUpdateDtoValidator>();
 
         return services;
     }

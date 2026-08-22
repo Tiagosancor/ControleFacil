@@ -153,6 +153,7 @@ app.MapCategoryEndpoints();
 app.MapBankAccountEndpoints();
 app.MapTransactionEndpoints();
 app.MapDashboardEndpoints();
+app.MapCategoryBudgetEndpoints();
 
 try
 {

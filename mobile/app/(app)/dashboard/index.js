@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { DeviceEventEmitter, ScrollView, Text, View } from 'react-native';
 import { dashboardService } from '@/services/dashboardService';
 import Card from '@/components/ui/Card';
 import FormSelect, { SelectItem } from '@/components/FormSelect';
@@ -50,7 +50,7 @@ export default function DashboardScreen() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     let cancelled = false;
     setLoading(true);
     dashboardService.getMonthlySummary({ year, month })
@@ -59,6 +59,15 @@ export default function DashboardScreen() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [year, month]);
+
+  useEffect(() => load(), [load]);
+
+  // Registro rápido (Sprint H) cria fora do fluxo de navegação normal — ver comentário
+  // no QuickAddFab.
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('semeiagrana:transaction-created', load);
+    return () => sub.remove();
+  }, [load]);
 
   const breakdown = summary?.categoryBreakdown ?? [];
   const maxValue = breakdown.reduce((max, b) => Math.max(max, b.total), 0);

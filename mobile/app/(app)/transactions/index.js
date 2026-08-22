@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, Text, View } from 'react-native';
+import { Alert, DeviceEventEmitter, FlatList, Pressable, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { transactionService } from '@/services/transactionService';
 import { categoryService } from '@/services/categoryService';
@@ -65,6 +65,13 @@ export default function TransactionsScreen() {
   }, [year, month, categoryId, bankAccountId, status]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  // Registro rápido (Sprint H) cria fora do fluxo de navegação normal — ver comentário
+  // no QuickAddFab.
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('semeiagrana:transaction-created', load);
+    return () => sub.remove();
+  }, [load]);
 
   const removeOne = (transaction) => {
     if (transaction.seriesId) {

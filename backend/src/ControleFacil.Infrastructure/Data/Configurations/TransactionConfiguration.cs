@@ -24,6 +24,11 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .HasForeignKey(t => t.BankAccountId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(t => t.CreditCard)
+            .WithMany()
+            .HasForeignKey(t => t.CreditCardId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasOne(t => t.User)
             .WithMany()
             .HasForeignKey(t => t.UserId)

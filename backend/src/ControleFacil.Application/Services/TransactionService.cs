@@ -58,6 +58,7 @@ public class TransactionService : ITransactionService
     {
         await EnsureCategoryOwnedAsync(dto.CategoryId);
         await EnsureBankAccountOwnedAsync(dto.BankAccountId);
+        await EnsureCreditCardOwnedAsync(dto.CreditCardId);
 
         var totalInstallments = dto.TotalInstallments is > 1 ? dto.TotalInstallments.Value : 1;
         var now = DateTime.UtcNow;
@@ -85,6 +86,7 @@ public class TransactionService : ITransactionService
                 Description = dto.Description,
                 PaymentMethod = dto.PaymentMethod,
                 BankAccountId = dto.BankAccountId,
+                CreditCardId = dto.CreditCardId,
                 Amount = dto.Amount,
                 PaymentDate = dto.PaymentDate?.AddMonths(i - 1),
                 Status = dto.Status,
@@ -114,12 +116,14 @@ public class TransactionService : ITransactionService
         var transaction = await GetOwnedAsync(id);
         await EnsureCategoryOwnedAsync(dto.CategoryId);
         await EnsureBankAccountOwnedAsync(dto.BankAccountId);
+        await EnsureCreditCardOwnedAsync(dto.CreditCardId);
 
         transaction.EntryDate = dto.EntryDate;
         transaction.CategoryId = dto.CategoryId;
         transaction.Description = dto.Description;
         transaction.PaymentMethod = dto.PaymentMethod;
         transaction.BankAccountId = dto.BankAccountId;
+        transaction.CreditCardId = dto.CreditCardId;
         transaction.Amount = dto.Amount;
         transaction.PaymentDate = dto.PaymentDate;
         transaction.Status = dto.Status;
@@ -165,6 +169,16 @@ public class TransactionService : ITransactionService
             throw new NotFoundException("Conta bancária não encontrada.");
     }
 
+    private async Task EnsureCreditCardOwnedAsync(int? creditCardId)
+    {
+        if (creditCardId is null)
+            return;
+
+        var exists = await _unitOfWork.CreditCards.AnyAsync(c => c.Id == creditCardId.Value && c.UserId == _currentUser.UserId);
+        if (!exists)
+            throw new NotFoundException("Cartão de crédito não encontrado.");
+    }
+
     private async Task<Transaction> GetOwnedAsync(int id)
     {
         var transaction = await _unitOfWork.Transactions.QueryWithDetails()
@@ -187,5 +201,7 @@ public class TransactionService : ITransactionService
         t.Status,
         t.InstallmentNumber,
         t.TotalInstallments,
-        t.SeriesId);
+        t.SeriesId,
+        t.CreditCardId,
+        t.CreditCard?.Name);
 }

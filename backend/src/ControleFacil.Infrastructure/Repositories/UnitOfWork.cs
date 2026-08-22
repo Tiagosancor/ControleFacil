@@ -19,7 +19,8 @@ public class UnitOfWork : IUnitOfWork
         IMonthlyGoalRepository monthlyGoals,
         IInvestmentCategoryRepository investmentCategories,
         IInvestmentEntryRepository investmentEntries,
-        ILongTermGoalRepository longTermGoals)
+        ILongTermGoalRepository longTermGoals,
+        ICreditCardRepository creditCards)
     {
         _context = context;
         Users = users;
@@ -33,6 +34,7 @@ public class UnitOfWork : IUnitOfWork
         InvestmentCategories = investmentCategories;
         InvestmentEntries = investmentEntries;
         LongTermGoals = longTermGoals;
+        CreditCards = creditCards;
     }
 
     public IUserRepository Users { get; }
@@ -46,6 +48,7 @@ public class UnitOfWork : IUnitOfWork
     public IInvestmentCategoryRepository InvestmentCategories { get; }
     public IInvestmentEntryRepository InvestmentEntries { get; }
     public ILongTermGoalRepository LongTermGoals { get; }
+    public ICreditCardRepository CreditCards { get; }
 
     public Task<int> SaveChangesAsync() => _context.SaveChangesAsync();
 }

@@ -13,5 +13,6 @@ public interface IUnitOfWork
     IInvestmentCategoryRepository InvestmentCategories { get; }
     IInvestmentEntryRepository InvestmentEntries { get; }
     ILongTermGoalRepository LongTermGoals { get; }
+    ICreditCardRepository CreditCards { get; }
     Task<int> SaveChangesAsync();
 }

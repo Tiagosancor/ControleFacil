@@ -12,6 +12,13 @@ public class Transaction
     public PaymentMethod PaymentMethod { get; set; }
     public int BankAccountId { get; set; }
     public BankAccount? BankAccount { get; set; }
+
+    // Vínculo opcional com o cartão de crédito da compra (Sprint M) — usado só pra
+    // agrupar o lançamento na fatura correta. Não muda o comportamento existente de
+    // Saldo Total/Resumo do mês, que continua olhando só BankAccountId e Status.
+    public int? CreditCardId { get; set; }
+    public CreditCard? CreditCard { get; set; }
+
     public decimal Amount { get; set; }
     public DateOnly? PaymentDate { get; set; }
     public TransactionStatus Status { get; set; }

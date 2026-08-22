@@ -11,5 +11,5 @@ public class TransactionRepository : Repository<Transaction>, ITransactionReposi
     {
     }
 
-    public IQueryable<Transaction> QueryWithDetails() => Set.Include(t => t.Category).Include(t => t.BankAccount);
+    public IQueryable<Transaction> QueryWithDetails() => Set.Include(t => t.Category).Include(t => t.BankAccount).Include(t => t.CreditCard);
 }

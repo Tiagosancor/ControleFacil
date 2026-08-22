@@ -73,4 +73,43 @@ public class TransactionServiceTests
         Assert.Contains(result.Items, t => t.EntryDate == new DateOnly(2026, 3, 10));
         Assert.Contains(result.Items, t => t.EntryDate == new DateOnly(2026, 3, 20));
     }
+
+    [Fact]
+    public async Task CreateAsync_WithCreditCardId_LinksCardInResponse()
+    {
+        var uow = TestUnitOfWorkFactory.Create(out _);
+        var currentUser = new FakeCurrentUserService(1);
+        var service = new TransactionService(uow, currentUser);
+        var cardService = new CreditCardService(uow, currentUser);
+        var (category, account) = await SeedCategoryAndAccountAsync(uow);
+        var card = await cardService.CreateAsync(new CreditCardCreateDto("Nubank", 10, 17));
+
+        var created = await service.CreateAsync(new TransactionCreateDto(
+            new DateOnly(2026, 3, 5), category.Id, "Compra no crédito", PaymentMethod.Credit,
+            account.Id, 250m, null, TransactionStatus.Pending, null, card.Id));
+
+        var result = Assert.Single(created);
+        Assert.Equal(card.Id, result.CreditCardId);
+        Assert.Equal("Nubank", result.CreditCardName);
+    }
+
+    [Fact]
+    public async Task CreateAsync_CreditCardFromAnotherUser_ThrowsNotFoundException()
+    {
+        var uow = TestUnitOfWorkFactory.Create(out _);
+        var cardService = new CreditCardService(uow, new FakeCurrentUserService(1));
+        var card = await cardService.CreateAsync(new CreditCardCreateDto("Nubank", 10, 17));
+
+        var serviceUser2 = new TransactionService(uow, new FakeCurrentUserService(2));
+        var categoryUser2 = new Category { Name = "Compras", Type = CategoryType.Expense, UserId = 2, IsActive = true };
+        var accountUser2 = new BankAccount { Name = "Banco 2", InitialBalance = 0, UserId = 2, IsActive = true };
+        await uow.Categories.AddAsync(categoryUser2);
+        await uow.BankAccounts.AddAsync(accountUser2);
+        await uow.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ControleFacil.Application.Exceptions.NotFoundException>(() =>
+            serviceUser2.CreateAsync(new TransactionCreateDto(
+                new DateOnly(2026, 3, 5), categoryUser2.Id, "Compra", PaymentMethod.Credit,
+                accountUser2.Id, 250m, null, TransactionStatus.Pending, null, card.Id)));
+    }
 }

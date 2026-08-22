@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<IInvestmentCategoryService, InvestmentCategoryService>();
         services.AddScoped<IInvestmentEntryService, InvestmentEntryService>();
         services.AddScoped<ILongTermGoalService, LongTermGoalService>();
+        services.AddScoped<ICreditCardService, CreditCardService>();
 
         services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
         services.AddScoped<IValidator<LoginDto>, LoginDtoValidator>();
@@ -43,6 +44,8 @@ public static class DependencyInjection
         services.AddScoped<IValidator<InvestmentEntryUpdateDto>, InvestmentEntryUpdateDtoValidator>();
         services.AddScoped<IValidator<LongTermGoalCreateDto>, LongTermGoalCreateDtoValidator>();
         services.AddScoped<IValidator<LongTermGoalUpdateDto>, LongTermGoalUpdateDtoValidator>();
+        services.AddScoped<IValidator<CreditCardCreateDto>, CreditCardCreateDtoValidator>();
+        services.AddScoped<IValidator<CreditCardUpdateDto>, CreditCardUpdateDtoValidator>();
 
         return services;
     }

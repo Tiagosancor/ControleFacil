@@ -11,7 +11,8 @@ public record TransactionCreateDto(
     decimal Amount,
     DateOnly? PaymentDate,
     TransactionStatus Status,
-    int? TotalInstallments);
+    int? TotalInstallments,
+    int? CreditCardId = null);
 
 public record TransactionUpdateDto(
     DateOnly EntryDate,
@@ -21,7 +22,8 @@ public record TransactionUpdateDto(
     int BankAccountId,
     decimal Amount,
     DateOnly? PaymentDate,
-    TransactionStatus Status);
+    TransactionStatus Status,
+    int? CreditCardId = null);
 
 public record TransactionResponseDto(
     int Id,
@@ -37,7 +39,9 @@ public record TransactionResponseDto(
     TransactionStatus Status,
     int? InstallmentNumber,
     int? TotalInstallments,
-    int? SeriesId);
+    int? SeriesId,
+    int? CreditCardId = null,
+    string? CreditCardName = null);
 
 public record TransactionFilterDto(
     int? CategoryId,

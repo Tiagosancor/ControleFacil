@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<IInvestmentCategoryRepository, InvestmentCategoryRepository>();
         services.AddScoped<IInvestmentEntryRepository, InvestmentEntryRepository>();
         services.AddScoped<ILongTermGoalRepository, LongTermGoalRepository>();
+        services.AddScoped<ICreditCardRepository, CreditCardRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IPasswordHasher, PasswordHasherService>();

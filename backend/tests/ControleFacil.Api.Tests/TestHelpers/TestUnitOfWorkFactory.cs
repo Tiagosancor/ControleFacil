@@ -24,6 +24,8 @@ public static class TestUnitOfWorkFactory
             new TransactionSeriesRepository(context),
             new PasswordResetTokenRepository(context),
             new CategoryBudgetRepository(context),
-            new MonthlyGoalRepository(context));
+            new MonthlyGoalRepository(context),
+            new InvestmentCategoryRepository(context),
+            new InvestmentEntryRepository(context));
     }
 }

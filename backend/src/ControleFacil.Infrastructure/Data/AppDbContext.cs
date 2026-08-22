@@ -18,6 +18,8 @@ public class AppDbContext : DbContext
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<CategoryBudget> CategoryBudgets => Set<CategoryBudget>();
     public DbSet<MonthlyGoal> MonthlyGoals => Set<MonthlyGoal>();
+    public DbSet<InvestmentCategory> InvestmentCategories => Set<InvestmentCategory>();
+    public DbSet<InvestmentEntry> InvestmentEntries => Set<InvestmentEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,5 +33,7 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PasswordResetTokenConfiguration());
         modelBuilder.ApplyConfiguration(new CategoryBudgetConfiguration());
         modelBuilder.ApplyConfiguration(new MonthlyGoalConfiguration());
+        modelBuilder.ApplyConfiguration(new InvestmentCategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new InvestmentEntryConfiguration());
     }
 }

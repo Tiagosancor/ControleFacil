@@ -11,6 +11,7 @@ public record MonthlySummaryDto(
     decimal TotalExpense,
     decimal Balance,
     decimal TotalBalance,
+    decimal TotalInvestments,
     IReadOnlyList<CategoryBreakdownDto> CategoryBreakdown);
 
 // DeviationPercent é null quando a meta (denominador) é zero ou negativa — dividir por

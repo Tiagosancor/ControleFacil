@@ -53,8 +53,9 @@ public class DashboardService : IDashboardService
             .ToList();
 
         var totalBalance = await GetTotalBalanceAsync();
+        var totalInvestments = await GetTotalInvestmentsAsync();
 
-        return new MonthlySummaryDto(year, month, totalIncome, totalExpense, totalIncome - totalExpense, totalBalance, breakdown);
+        return new MonthlySummaryDto(year, month, totalIncome, totalExpense, totalIncome - totalExpense, totalBalance, totalInvestments, breakdown);
     }
 
     // Saldo total = "quanto dinheiro o usuário tem agora": saldo inicial das contas bancárias
@@ -79,6 +80,32 @@ public class DashboardService : IDashboardService
             .SumAsync();
 
         return initialBalanceSum + paidDelta;
+    }
+
+    // Patrimônio investido = soma do ÚLTIMO valor lançado (mais recente por Ano/Mês) em
+    // cada categoria de investimento ATIVA do usuário — mesma semântica "sem recorte de
+    // mês" do saldo total das contas: se o usuário não lançou nada este mês, mantém o
+    // último valor conhecido em vez de zerar (evita que o Patrimônio Total oscile só
+    // porque o usuário ainda não atualizou a planilha do mês corrente).
+    private async Task<decimal> GetTotalInvestmentsAsync()
+    {
+        var activeCategoryIds = await _unitOfWork.InvestmentCategories.Query()
+            .Where(c => c.UserId == _currentUser.UserId && c.IsActive)
+            .Select(c => c.Id)
+            .ToListAsync();
+
+        if (activeCategoryIds.Count == 0)
+            return 0m;
+
+        var entries = await _unitOfWork.InvestmentEntries.Query()
+            .Where(e => e.UserId == _currentUser.UserId && activeCategoryIds.Contains(e.InvestmentCategoryId))
+            .Select(e => new { e.InvestmentCategoryId, e.Year, e.Month, e.Value })
+            .ToListAsync();
+
+        return entries
+            .GroupBy(e => e.InvestmentCategoryId)
+            .Select(g => g.OrderByDescending(e => e.Year).ThenByDescending(e => e.Month).First().Value)
+            .Sum();
     }
 
     // Mostra "o que está vencendo" independente do DueAlertSentAt do job de e-mail (Sprint

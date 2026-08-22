@@ -10,5 +10,7 @@ public interface IUnitOfWork
     IPasswordResetTokenRepository PasswordResetTokens { get; }
     ICategoryBudgetRepository CategoryBudgets { get; }
     IMonthlyGoalRepository MonthlyGoals { get; }
+    IInvestmentCategoryRepository InvestmentCategories { get; }
+    IInvestmentEntryRepository InvestmentEntries { get; }
     Task<int> SaveChangesAsync();
 }

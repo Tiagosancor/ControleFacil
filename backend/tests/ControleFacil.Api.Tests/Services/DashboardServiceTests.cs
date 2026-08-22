@@ -208,6 +208,37 @@ public class DashboardServiceTests
     }
 
     [Fact]
+    public async Task GetMonthlySummaryAsync_TotalInvestments_SumsLatestValuePerActiveCategory()
+    {
+        var uow = TestUnitOfWorkFactory.Create(out _);
+        var service = new DashboardService(uow, new FakeCurrentUserService(1), Options.Create(new DueAlertOptions()));
+
+        var rendaFixa = new InvestmentCategory { Name = "Renda Fixa", UserId = 1, IsActive = true };
+        var acoes = new InvestmentCategory { Name = "Ações", UserId = 1, IsActive = true };
+        var categoriaInativa = new InvestmentCategory { Name = "Cripto (encerrada)", UserId = 1, IsActive = false };
+        await uow.InvestmentCategories.AddAsync(rendaFixa);
+        await uow.InvestmentCategories.AddAsync(acoes);
+        await uow.InvestmentCategories.AddAsync(categoriaInativa);
+        await uow.SaveChangesAsync();
+
+        var now = DateTime.UtcNow;
+
+        // Renda Fixa: dois lançamentos — só o mais recente (abril) deve contar.
+        await uow.InvestmentEntries.AddAsync(new InvestmentEntry { InvestmentCategoryId = rendaFixa.Id, Year = 2026, Month = 3, Value = 10000m, UserId = 1, CreatedAt = now, UpdatedAt = now });
+        await uow.InvestmentEntries.AddAsync(new InvestmentEntry { InvestmentCategoryId = rendaFixa.Id, Year = 2026, Month = 4, Value = 10500m, UserId = 1, CreatedAt = now, UpdatedAt = now });
+        // Ações: só um lançamento, em fevereiro — deve continuar contando mesmo consultando abril
+        // (carrega o último valor conhecido pra frente, sem exigir lançamento todo mês).
+        await uow.InvestmentEntries.AddAsync(new InvestmentEntry { InvestmentCategoryId = acoes.Id, Year = 2026, Month = 2, Value = 2400m, UserId = 1, CreatedAt = now, UpdatedAt = now });
+        // Categoria inativa: não deve entrar na soma mesmo tendo lançamento mais recente que os outros.
+        await uow.InvestmentEntries.AddAsync(new InvestmentEntry { InvestmentCategoryId = categoriaInativa.Id, Year = 2026, Month = 4, Value = 99999m, UserId = 1, CreatedAt = now, UpdatedAt = now });
+        await uow.SaveChangesAsync();
+
+        var summary = await service.GetMonthlySummaryAsync(2026, 4);
+
+        Assert.Equal(12900m, summary.TotalInvestments);
+    }
+
+    [Fact]
     public async Task GetGoalComparisonAsync_NoGoalSet_ReturnsNull()
     {
         var uow = TestUnitOfWorkFactory.Create(out _);

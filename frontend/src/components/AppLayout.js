@@ -3,11 +3,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '@/contexts/AuthContext'
 import Spinner from '@/components/ui/Spinner'
+import QuickAddModal from '@/components/QuickAddModal'
 
 export default function AppLayout({ children }) {
   const router = useRouter()
   const { user, loading, logout } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
 
   const links = [
     { href: '/dashboard', label: 'Dashboard' },
@@ -94,6 +96,22 @@ export default function AppLayout({ children }) {
           {children}
         </main>
       </div>
+
+      {/* Sprint H (registro rápido): fixo em qualquer tela autenticada, não só em
+          Lançamentos — é esse o ponto ("poucos toques a partir de qualquer tela"). */}
+      <button
+        onClick={() => setQuickAddOpen(true)}
+        aria-label="Registro rápido"
+        className="fixed bottom-6 right-6 z-30 h-14 w-14 rounded-full bg-primary text-white text-3xl leading-none shadow-soft flex items-center justify-center hover:bg-primary-hover transition-colors"
+      >
+        +
+      </button>
+
+      <QuickAddModal
+        open={quickAddOpen}
+        onClose={() => setQuickAddOpen(false)}
+        onCreated={() => window.dispatchEvent(new Event('semeiagrana:transaction-created'))}
+      />
     </div>
   )
 }

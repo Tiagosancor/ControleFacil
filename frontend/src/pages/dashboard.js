@@ -110,29 +110,29 @@ export default function DashboardPage() {
   const [dueSoon, setDueSoon] = useState([])
   const [budgets, setBudgets] = useState([])
 
-  useEffect(() => {
-    let cancelled = false
+  const loadSummary = () => {
     setLoading(true)
-    dashboardService.getMonthlySummary({ year, month })
-      .then(res => { if (!cancelled) setSummary(res.data) })
-      .catch(() => { if (!cancelled) alert('Falha ao carregar o resumo do mês') })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-  }, [year, month])
+    return dashboardService.getMonthlySummary({ year, month })
+      .then(res => setSummary(res.data))
+      .catch(() => alert('Falha ao carregar o resumo do mês'))
+      .finally(() => setLoading(false))
+  }
+  const loadBudgets = () => categoryBudgetService.list({ year, month }).then(res => setBudgets(res.data)).catch(() => {})
+  const loadDueSoon = () => dashboardService.getDueSoon().then(res => setDueSoon(res.data)).catch(() => {})
 
-  useEffect(() => {
-    categoryBudgetService.list({ year, month })
-      .then(res => setBudgets(res.data))
-      .catch(() => {})
-  }, [year, month])
-
+  useEffect(() => { loadSummary() }, [year, month])
+  useEffect(() => { loadBudgets() }, [year, month])
   // Independente do filtro de Ano/Mês acima — "vencendo em breve" é sempre relativo a
   // hoje, não ao período selecionado no resumo do mês.
+  useEffect(() => { loadDueSoon() }, [])
+
+  // Registro rápido (Sprint H, FAB no AppLayout) cria numa página qualquer — se for
+  // esta, atualiza saldo/orçamentos/vencimentos sozinho.
   useEffect(() => {
-    dashboardService.getDueSoon()
-      .then(res => setDueSoon(res.data))
-      .catch(() => {})
-  }, [])
+    const handler = () => { loadSummary(); loadBudgets(); loadDueSoon() }
+    window.addEventListener('semeiagrana:transaction-created', handler)
+    return () => window.removeEventListener('semeiagrana:transaction-created', handler)
+  }, [year, month])
 
   const chartData = (summary?.categoryBreakdown ?? [])
     .map(b => ({

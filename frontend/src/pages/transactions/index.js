@@ -161,6 +161,13 @@ export default function TransactionsPage() {
 
   useEffect(() => { load() }, [startDate, endDate, categoryId, bankAccountId, status])
 
+  // Registro rápido (Sprint H, FAB no AppLayout) cria numa página qualquer — se for
+  // esta, atualiza a lista sozinha em vez de deixar o usuário com dado desatualizado.
+  useEffect(() => {
+    window.addEventListener('semeiagrana:transaction-created', load)
+    return () => window.removeEventListener('semeiagrana:transaction-created', load)
+  }, [load])
+
   const removeOne = async (transaction) => {
     if (transaction.seriesId) {
       const cancelSeries = confirm(

@@ -159,6 +159,7 @@ app.MapInvestmentCategoryEndpoints();
 app.MapInvestmentEntryEndpoints();
 app.MapLongTermGoalEndpoints();
 app.MapCreditCardEndpoints();
+app.MapReportEndpoints();
 
 try
 {

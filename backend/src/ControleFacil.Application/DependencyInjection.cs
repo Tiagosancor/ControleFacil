@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IInvestmentEntryService, InvestmentEntryService>();
         services.AddScoped<ILongTermGoalService, LongTermGoalService>();
         services.AddScoped<ICreditCardService, CreditCardService>();
+        services.AddScoped<IReportService, ReportService>();
 
         services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
         services.AddScoped<IValidator<LoginDto>, LoginDtoValidator>();

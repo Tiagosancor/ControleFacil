@@ -21,6 +21,7 @@ export default function AppLayout({ children }) {
     { href: '/investments', label: 'Investimentos' },
     { href: '/long-term-goals', label: 'Metas de Longo Prazo' },
     { href: '/credit-cards', label: 'Cartões de Crédito' },
+    { href: '/reports', label: 'Relatórios' },
   ]
 
   if (loading) {

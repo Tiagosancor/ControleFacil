@@ -7,6 +7,7 @@ import { bankAccountService } from '@/services/bankAccountService'
 import { creditCardService } from '@/services/creditCardService'
 import FormInput from '@/components/FormInput'
 import FormSelect from '@/components/FormSelect'
+import DateField from '@/components/DateField'
 import CategoryPicker from '@/components/CategoryPicker'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
@@ -150,7 +151,7 @@ export default function EditTransactionPage() {
         )}
 
         <form onSubmit={submit}>
-          <FormInput label="Data do lançamento" type="date" value={entryDate} onChange={setEntryDate} />
+          <DateField label="Data do lançamento" value={entryDate} onChange={setEntryDate} />
 
           <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} />
 
@@ -173,7 +174,7 @@ export default function EditTransactionPage() {
 
           <FormInput label="Valor" type="number" step="0.01" value={amount} onChange={setAmount} error={errors.amount} />
 
-          <FormInput label="Data de pagamento (opcional)" type="date" value={paymentDate} onChange={setPaymentDate} />
+          <DateField label="Data de pagamento (opcional)" value={paymentDate} onChange={setPaymentDate} />
 
           <FormSelect label="Status" value={status} onChange={setStatus}>
             <option value="Pending">Não pago</option>

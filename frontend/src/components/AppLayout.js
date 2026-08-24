@@ -7,7 +7,7 @@ import QuickAddModal from '@/components/QuickAddModal'
 
 export default function AppLayout({ children }) {
   const router = useRouter()
-  const { user, loading, logout } = useAuth()
+  const { user, loading, logout, isAdmin } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [quickAddOpen, setQuickAddOpen] = useState(false)
 
@@ -23,6 +23,7 @@ export default function AppLayout({ children }) {
     { href: '/credit-cards', label: 'Cartões de Crédito' },
     { href: '/reports', label: 'Relatórios' },
     { href: '/calculadora', label: 'Calculadora' },
+    ...(isAdmin ? [{ href: '/admin', label: 'Admin' }] : []),
   ]
 
   if (loading) {

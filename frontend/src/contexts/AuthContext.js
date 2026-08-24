@@ -40,8 +40,10 @@ export function AuthProvider({ children }) {
     router.push('/login')
   }
 
+  const isAdmin = user?.role === 'Admin'
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   )

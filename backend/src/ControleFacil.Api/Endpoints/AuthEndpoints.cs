@@ -43,7 +43,7 @@ public static class AuthEndpoints
             var user = await unitOfWork.Users.GetByIdAsync(principal.GetUserId());
             if (user is null) return Results.NotFound();
 
-            return Results.Ok(new UserResponseDto(user.Id, user.Name, user.Email));
+            return Results.Ok(new UserResponseDto(user.Id, user.Name, user.Email, user.Role));
         }).RequireAuthorization();
 
         group.MapPost("/forgot-password", async (

@@ -53,7 +53,7 @@ public class AuthService : IAuthService
         await _unitOfWork.Users.AddAsync(user);
         await _unitOfWork.SaveChangesAsync();
 
-        return new UserResponseDto(user.Id, user.Name, user.Email);
+        return new UserResponseDto(user.Id, user.Name, user.Email, user.Role);
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
@@ -63,7 +63,7 @@ public class AuthService : IAuthService
             throw new AuthenticationException("Email ou senha inválidos");
 
         var token = _jwtTokenService.GenerateToken(user);
-        return new AuthResponseDto(token, new UserResponseDto(user.Id, user.Name, user.Email));
+        return new AuthResponseDto(token, new UserResponseDto(user.Id, user.Name, user.Email, user.Role));
     }
 
     public async Task ForgotPasswordAsync(ForgotPasswordDto dto)

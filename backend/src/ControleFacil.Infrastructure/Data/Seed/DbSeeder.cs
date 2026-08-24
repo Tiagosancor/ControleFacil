@@ -54,6 +54,12 @@ public static class DbSeeder
         // só roda uma vez num banco totalmente novo.
         await SeedSystemCategoriesAsync(context);
 
+        // Promove o usuário de teste a Admin mesmo num banco já provisionado (onde o
+        // bloco de criação abaixo nunca roda de novo) — mesma motivação do
+        // SeedSystemCategoriesAsync: idempotente, alcança bancos que já existiam antes
+        // dessa mudança, não só uma instalação nova.
+        await EnsureSeedAdminAsync(context);
+
         if (await context.Users.AnyAsync())
             return;
 
@@ -61,6 +67,7 @@ public static class DbSeeder
         {
             Name = "Usuário Teste",
             Email = "teste@controlefacil.com",
+            Role = UserRole.Admin,
             CreatedAt = DateTime.UtcNow,
         };
         user.PasswordHash = passwordHasher.HashPassword(user, "Teste@123");
@@ -152,6 +159,16 @@ public static class DbSeeder
             });
         }
 
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task EnsureSeedAdminAsync(AppDbContext context)
+    {
+        var seedUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "teste@controlefacil.com");
+        if (seedUser is null || seedUser.Role == UserRole.Admin)
+            return;
+
+        seedUser.Role = UserRole.Admin;
         await context.SaveChangesAsync();
     }
 }

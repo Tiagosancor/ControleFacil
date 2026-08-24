@@ -112,7 +112,13 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Registrada já nesta sprint (Admin-1) pra ficar disponível de imediato — nenhum
+    // endpoint a usa ainda (isso é escopo da Sprint Admin-2, quando o caso de uso real
+    // de suporte aparecer).
+    options.AddPolicy("AdminOnly", policy => policy.RequireClaim("role", "Admin"));
+});
 
 builder.Services.AddRateLimiter(options =>
 {

@@ -33,6 +33,7 @@ public class JwtTokenService : IJwtTokenService
             {
                 new Claim("id", user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
+                new Claim("role", user.Role.ToString()),
             }),
             Expires = DateTime.UtcNow.AddMinutes(expireMinutes),
             Issuer = _configuration["Jwt:Issuer"],

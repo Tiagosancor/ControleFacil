@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<ILongTermGoalService, LongTermGoalService>();
         services.AddScoped<ICreditCardService, CreditCardService>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IUsageEventService, UsageEventService>();
 
         services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
         services.AddScoped<IValidator<LoginDto>, LoginDtoValidator>();

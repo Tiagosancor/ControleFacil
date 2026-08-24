@@ -3,6 +3,7 @@ using ControleFacil.Application.Dtos;
 using ControleFacil.Application.Exceptions;
 using ControleFacil.Application.Interfaces;
 using ControleFacil.Domain.Entities;
+using ControleFacil.Domain.Enums;
 using ControleFacil.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -63,6 +64,18 @@ public class AuthService : IAuthService
             throw new AuthenticationException("Email ou senha inválidos");
 
         var token = _jwtTokenService.GenerateToken(user);
+
+        // Único ponto do sistema que grava um Login de verdade — sem isso, login-history
+        // e logged-in-users (Sprint Admin-1) nunca refletem uso real, só os eventos de
+        // teste inseridos manualmente via POST /api/usage-events.
+        await _unitOfWork.UsageEvents.AddAsync(new UsageEvent
+        {
+            UserId = user.Id,
+            EventType = UsageEventType.Login,
+            CreatedAt = DateTime.UtcNow,
+        });
+        await _unitOfWork.SaveChangesAsync();
+
         return new AuthResponseDto(token, new UserResponseDto(user.Id, user.Name, user.Email, user.Role));
     }
 

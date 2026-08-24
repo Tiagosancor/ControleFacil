@@ -100,6 +100,14 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
+    // Sem isso, o JwtSecurityTokenHandler remapeia nomes curtos de claim conhecidos
+    // (ex.: "role" -> a URI longa ClaimTypes.Role) ao validar o token — silenciosamente
+    // quebrando qualquer FindFirst("role")/RequireClaim("role", ...) que espera o nome
+    // exato emitido no token. Descoberto testando de ponta a ponta com curl: o token
+    // continha "role":"Admin" (confirmado decodificando o JWT cru), mas a policy
+    // AdminOnly retornava 403 mesmo assim, porque a claim já chegava com outro Type.
+    options.MapInboundClaims = false;
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,

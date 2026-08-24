@@ -160,6 +160,7 @@ app.MapInvestmentEntryEndpoints();
 app.MapLongTermGoalEndpoints();
 app.MapCreditCardEndpoints();
 app.MapReportEndpoints();
+app.MapUsageEventEndpoints();
 
 try
 {

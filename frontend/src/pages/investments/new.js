@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import Router from 'next/router'
-import Link from 'next/link'
 import AppLayout from '@/components/AppLayout'
 import { investmentEntryService } from '@/services/investmentEntryService'
 import { investmentCategoryService } from '@/services/investmentCategoryService'
-import { INVESTMENT_GROUPS, groupOfType } from '@/lib/investmentTypes'
+import { INVESTMENT_GROUPS, INVESTMENT_TYPES_BY_GROUP, GROUPS_WITH_INTEREST_RATE, BRAPI_TYPE_BY_INVESTMENT_TYPE, typeLabel } from '@/lib/investmentTypes'
 import FormInput from '@/components/FormInput'
 import FormSelect from '@/components/FormSelect'
+import AssetAutocomplete from '@/components/AssetAutocomplete'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 
@@ -15,70 +15,85 @@ const MONTHS = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 
-const UNCLASSIFIED = '_unclassified'
+const NEW_HOLDING = '__new__'
 
 export default function NewInvestmentEntryPage() {
   const now = new Date()
   const [categories, setCategories] = useState([])
   const [group, setGroup] = useState('')
-  const [investmentCategoryId, setInvestmentCategoryId] = useState('')
+  const [type, setType] = useState('')
+  const [holdingId, setHoldingId] = useState('')
+  const [newHoldingName, setNewHoldingName] = useState('')
+  const [newHoldingInterestRate, setNewHoldingInterestRate] = useState('')
   const [year, setYear] = useState(String(now.getFullYear()))
   const [month, setMonth] = useState(String(now.getMonth() + 1))
   const [value, setValue] = useState('')
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
-  // Passo 1 (Categoria) -> Passo 2 (o investimento específico dentro dela) — antes disso
-  // era um único dropdown com todas as categorias juntas, misturando Renda Fixa com
-  // Renda Variável etc. sem nenhuma organização.
-  const groupsWithCategories = useMemo(() => {
-    const map = {}
-    categories.forEach(c => {
-      const g = c.type ? groupOfType(c.type) : UNCLASSIFIED
-      if (!map[g]) map[g] = []
-      map[g].push(c)
-    })
-    return map
-  }, [categories])
+  useEffect(() => {
+    investmentCategoryService.list({ includeInactive: false }).then(res => setCategories(res.data))
+  }, [])
 
-  const groupOptions = useMemo(() => {
-    const opts = INVESTMENT_GROUPS.filter(g => groupsWithCategories[g.value]?.length)
-    if (groupsWithCategories[UNCLASSIFIED]?.length) opts.push({ value: UNCLASSIFIED, label: 'Não classificado' })
-    return opts
-  }, [groupsWithCategories])
+  const typeOptions = group ? INVESTMENT_TYPES_BY_GROUP[group] : []
+  const showInterestRate = GROUPS_WITH_INTEREST_RATE.includes(group)
+  const brapiType = BRAPI_TYPE_BY_INVESTMENT_TYPE[type]
 
-  const categoryOptions = group ? (groupsWithCategories[group] || []) : []
-
+  // Passo 1 (Categoria) -> Passo 2 (Tipo específico) sempre com as opções fixas do
+  // catálogo, iguais às de /investment-categories/new — não filtradas pelo que o usuário
+  // já tem cadastrado, senão categorias sem nenhum investimento ainda nunca apareceriam.
   const applyGroup = (g) => {
     setGroup(g)
-    const first = groupsWithCategories[g]?.[0]
-    setInvestmentCategoryId(first ? String(first.id) : '')
+    setType('')
+    setHoldingId('')
+    setNewHoldingName('')
   }
 
-  useEffect(() => {
-    investmentCategoryService.list({ includeInactive: false }).then(res => {
-      setCategories(res.data)
-      if (res.data.length) {
-        const first = res.data[0]
-        const firstGroup = first.type ? groupOfType(first.type) : UNCLASSIFIED
-        setGroup(firstGroup)
-        setInvestmentCategoryId(String(first.id))
-      }
-    })
-  }, [])
+  // Escolhido o Tipo, resolve pra qual participação (InvestmentCategory) o valor vai.
+  // Mesmo havendo só uma já cadastrada, sempre oferece "+ Novo investimento" — Ações,
+  // FII etc. costumam ter vários papéis distintos do mesmo Tipo, então nunca dá pra
+  // assumir que a única existente é a certa.
+  const matchingHoldings = useMemo(
+    () => (type ? categories.filter(c => c.type === type) : []),
+    [categories, type]
+  )
+
+  const applyType = (t) => {
+    setType(t)
+    const matches = t ? categories.filter(c => c.type === t) : []
+    setHoldingId(matches.length ? String(matches[0].id) : NEW_HOLDING)
+    setNewHoldingName(t ? typeLabel(t) : '')
+  }
+
+  const creatingNew = type !== '' && (matchingHoldings.length === 0 || holdingId === NEW_HOLDING)
 
   const submit = async (e) => {
     e.preventDefault()
     const errs = {}
-    if (!investmentCategoryId) errs.investmentCategoryId = 'Selecione uma categoria'
+    if (!group) errs.group = 'Categoria é obrigatória'
+    if (!type) errs.type = 'Tipo é obrigatório'
+    if (creatingNew && !newHoldingName) errs.newHoldingName = 'Dê um nome pra esse investimento'
     if (value === '' || Number(value) < 0) errs.value = 'Informe um valor válido'
     setErrors(errs)
     if (Object.keys(errs).length) return
 
     setSubmitting(true)
     try {
+      let investmentCategoryId
+      if (creatingNew) {
+        const created = await investmentCategoryService.create({
+          name: newHoldingName,
+          type,
+          appliedAmount: Number(value),
+          interestRate: showInterestRate && newHoldingInterestRate ? Number(newHoldingInterestRate) : null,
+        })
+        investmentCategoryId = created.data.id
+      } else {
+        investmentCategoryId = Number(holdingId)
+      }
+
       await investmentEntryService.create({
-        investmentCategoryId: Number(investmentCategoryId),
+        investmentCategoryId,
         year: Number(year),
         month: Number(month),
         value: Number(value),
@@ -96,20 +111,57 @@ export default function NewInvestmentEntryPage() {
       <h1 className="text-2xl font-heading font-semibold mb-6">Lançar valor de investimento</h1>
       <Card className="max-w-lg">
         <form onSubmit={submit}>
-          {categories.length === 0 ? (
-            <p className="text-sm text-text-secondary mb-4">
-              Você ainda não tem nenhuma categoria de investimento. Crie uma{' '}
-              <Link href="/investment-categories/new" className="text-link">categoria</Link> primeiro.
-            </p>
-          ) : (
-            <>
-              <FormSelect label="Categoria" value={group} onChange={applyGroup}>
-                {groupOptions.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
-              </FormSelect>
+          <FormSelect label="Categoria" value={group} onChange={applyGroup} error={errors.group}>
+            <option value="">Selecione...</option>
+            {INVESTMENT_GROUPS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+          </FormSelect>
 
-              <FormSelect label="Investimento" value={investmentCategoryId} onChange={setInvestmentCategoryId} error={errors.investmentCategoryId}>
-                {categoryOptions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </FormSelect>
+          <FormSelect label="Tipo" value={type} onChange={applyType} disabled={!group} error={errors.type}>
+            <option value="">{group ? 'Selecione...' : 'Escolha uma categoria primeiro'}</option>
+            {typeOptions.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </FormSelect>
+
+          {type && matchingHoldings.length > 0 && (
+            <FormSelect label="Investimento" value={holdingId} onChange={setHoldingId}>
+              {matchingHoldings.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+              <option value={NEW_HOLDING}>+ Novo investimento</option>
+            </FormSelect>
+          )}
+
+          {creatingNew && (
+            <>
+              {matchingHoldings.length === 0 && (
+                <p className="text-xs text-text-secondary -mt-2 mb-3">
+                  Você ainda não tem um investimento desse tipo — ele será criado junto com este lançamento.
+                </p>
+              )}
+              {brapiType ? (
+                <AssetAutocomplete
+                  label="Nome"
+                  placeholder="Digite o ticker ou nome, ex: PETR4"
+                  value={newHoldingName}
+                  onChange={setNewHoldingName}
+                  assetType={brapiType}
+                  error={errors.newHoldingName}
+                />
+              ) : (
+                <FormInput
+                  label="Nome"
+                  placeholder="Ex: CDB Banco Inter"
+                  value={newHoldingName}
+                  onChange={setNewHoldingName}
+                  error={errors.newHoldingName}
+                />
+              )}
+              {showInterestRate && (
+                <FormInput
+                  label="Taxa de juros (% ao ano, opcional)"
+                  type="number"
+                  step="0.01"
+                  value={newHoldingInterestRate}
+                  onChange={setNewHoldingInterestRate}
+                />
+              )}
             </>
           )}
 
@@ -134,7 +186,7 @@ export default function NewInvestmentEntryPage() {
           />
 
           {errors.form && <div className="text-red-600 text-sm mb-3">{errors.form}</div>}
-          <Button type="submit" variant="primary" loading={submitting} disabled={categories.length === 0}>
+          <Button type="submit" variant="primary" loading={submitting}>
             {submitting ? 'Salvando...' : 'Salvar'}
           </Button>
         </form>

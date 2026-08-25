@@ -2,6 +2,7 @@ using ControleFacil.Api.Tests.TestHelpers;
 using ControleFacil.Application.Dtos;
 using ControleFacil.Application.Exceptions;
 using ControleFacil.Application.Services;
+using ControleFacil.Domain.Enums;
 using Xunit;
 
 namespace ControleFacil.Api.Tests.Services;
@@ -64,7 +65,7 @@ public class LongTermGoalServiceTests
         var entryService = new InvestmentEntryService(uow, currentUser);
         var goalService = new LongTermGoalService(uow, currentUser);
 
-        var category = await categoryService.CreateAsync(new InvestmentCategoryCreateDto("Reserva Carro"));
+        var category = await categoryService.CreateAsync(new InvestmentCategoryCreateDto("Reserva Carro", InvestmentType.CDB, 1000m));
         await entryService.CreateAsync(new InvestmentEntryCreateDto(category.Id, 2026, 1, 3000m));
         await entryService.CreateAsync(new InvestmentEntryCreateDto(category.Id, 2026, 2, 3500m));
 
@@ -84,7 +85,7 @@ public class LongTermGoalServiceTests
     {
         var uow = TestUnitOfWorkFactory.Create(out _);
         var categoryService = new InvestmentCategoryService(uow, new FakeCurrentUserService(1));
-        var category = await categoryService.CreateAsync(new InvestmentCategoryCreateDto("Renda Fixa"));
+        var category = await categoryService.CreateAsync(new InvestmentCategoryCreateDto("Renda Fixa", InvestmentType.CDB, 1000m));
 
         var goalServiceUser2 = new LongTermGoalService(uow, new FakeCurrentUserService(2));
         var today = DateOnly.FromDateTime(DateTime.UtcNow);

@@ -2,9 +2,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AppLayout from '@/components/AppLayout'
 import { investmentCategoryService } from '@/services/investmentCategoryService'
+import { groupLabel, typeLabel } from '@/lib/investmentTypes'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Skeleton from '@/components/ui/Skeleton'
+
+function formatCurrency(value) {
+  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
 
 export default function InvestmentCategoriesPage() {
   const [items, setItems] = useState([])
@@ -49,8 +54,20 @@ export default function InvestmentCategoriesPage() {
             <Link key={category.id} href={`/investment-categories/${category.id}/edit`}>
               <Card>
                 <div className="flex justify-between items-center gap-2">
-                  <p className="font-medium truncate">{category.name}</p>
-                  {!category.isActive && <p className="text-xs text-text-muted shrink-0">Inativa</p>}
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{category.name}</p>
+                    <p className="text-xs text-text-secondary mt-1 truncate">
+                      {category.type
+                        ? `${groupLabel(category.group)} · ${typeLabel(category.type)}`
+                        : 'Não classificado'}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    {category.appliedAmount != null && (
+                      <p className="text-sm font-medium tabular-nums">{formatCurrency(category.appliedAmount)}</p>
+                    )}
+                    {!category.isActive && <p className="text-xs text-text-muted">Inativa</p>}
+                  </div>
                 </div>
               </Card>
             </Link>

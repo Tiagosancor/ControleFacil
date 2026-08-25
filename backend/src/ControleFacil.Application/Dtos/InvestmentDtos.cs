@@ -1,10 +1,31 @@
+using ControleFacil.Domain.Enums;
+
 namespace ControleFacil.Application.Dtos;
 
-public record InvestmentCategoryCreateDto(string Name);
+public record InvestmentCategoryCreateDto(
+    string Name,
+    InvestmentType Type,
+    decimal AppliedAmount,
+    decimal? InterestRate = null,
+    decimal? MonthlyContribution = null);
 
-public record InvestmentCategoryUpdateDto(string Name, bool IsActive);
+public record InvestmentCategoryUpdateDto(
+    string Name,
+    InvestmentType Type,
+    decimal AppliedAmount,
+    bool IsActive,
+    decimal? InterestRate = null,
+    decimal? MonthlyContribution = null);
 
-public record InvestmentCategoryResponseDto(int Id, string Name, bool IsActive);
+public record InvestmentCategoryResponseDto(
+    int Id,
+    string Name,
+    InvestmentGroup? Group,
+    InvestmentType? Type,
+    decimal? AppliedAmount,
+    decimal? InterestRate,
+    decimal? MonthlyContribution,
+    bool IsActive);
 
 public record InvestmentEntryCreateDto(int InvestmentCategoryId, int Year, int Month, decimal Value);
 

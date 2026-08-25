@@ -2,6 +2,7 @@ using ControleFacil.Api.Tests.TestHelpers;
 using ControleFacil.Application.Dtos;
 using ControleFacil.Application.Exceptions;
 using ControleFacil.Application.Services;
+using ControleFacil.Domain.Enums;
 using Xunit;
 
 namespace ControleFacil.Api.Tests.Services;
@@ -10,7 +11,7 @@ public class InvestmentEntryServiceTests
 {
     private static async Task<int> CreateCategoryAsync(InvestmentCategoryService categoryService, string name = "Renda Fixa")
     {
-        var category = await categoryService.CreateAsync(new InvestmentCategoryCreateDto(name));
+        var category = await categoryService.CreateAsync(new InvestmentCategoryCreateDto(name, InvestmentType.CDB, 1000m));
         return category.Id;
     }
 

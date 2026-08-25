@@ -8,6 +8,10 @@ public class InvestmentCategoryCreateDtoValidator : AbstractValidator<Investment
     public InvestmentCategoryCreateDtoValidator()
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Type).IsInEnum();
+        RuleFor(x => x.AppliedAmount).GreaterThan(0);
+        RuleFor(x => x.InterestRate).GreaterThanOrEqualTo(0).When(x => x.InterestRate.HasValue);
+        RuleFor(x => x.MonthlyContribution).GreaterThanOrEqualTo(0).When(x => x.MonthlyContribution.HasValue);
     }
 }
 
@@ -16,5 +20,9 @@ public class InvestmentCategoryUpdateDtoValidator : AbstractValidator<Investment
     public InvestmentCategoryUpdateDtoValidator()
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Type).IsInEnum();
+        RuleFor(x => x.AppliedAmount).GreaterThan(0);
+        RuleFor(x => x.InterestRate).GreaterThanOrEqualTo(0).When(x => x.InterestRate.HasValue);
+        RuleFor(x => x.MonthlyContribution).GreaterThanOrEqualTo(0).When(x => x.MonthlyContribution.HasValue);
     }
 }

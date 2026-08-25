@@ -17,6 +17,13 @@ public class BankAccountConfiguration : IEntityTypeConfiguration<BankAccount>
             .HasForeignKey(b => b.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Property(b => b.BankIspb).HasMaxLength(8);
+        builder.HasOne(b => b.Bank)
+            .WithMany()
+            .HasForeignKey(b => b.BankIspb)
+            .HasPrincipalKey(bank => bank.Ispb)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(b => b.UserId);
     }
 }

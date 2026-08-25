@@ -21,7 +21,7 @@ public class BankAccountService : IBankAccountService
 
     public async Task<PagedResultDto<BankAccountResponseDto>> GetAllAsync(bool includeInactive, int page, int pageSize)
     {
-        var query = _unitOfWork.BankAccounts.Query().Where(b => b.UserId == _currentUser.UserId);
+        var query = _unitOfWork.BankAccounts.Query().Include(b => b.Bank).Where(b => b.UserId == _currentUser.UserId);
         if (!includeInactive)
             query = query.Where(b => b.IsActive);
 
@@ -47,33 +47,51 @@ public class BankAccountService : IBankAccountService
 
     public async Task<BankAccountResponseDto> CreateAsync(BankAccountCreateDto dto)
     {
+        var bank = await ResolveBankAsync(dto.BankIspb);
+
         var bankAccount = new BankAccount
         {
             Name = dto.Name,
             InitialBalance = dto.InitialBalance,
             UserId = _currentUser.UserId,
             IsActive = true,
+            BankIspb = bank?.Ispb,
         };
 
         await _unitOfWork.BankAccounts.AddAsync(bankAccount);
         await _unitOfWork.SaveChangesAsync();
 
+        bankAccount.Bank = bank;
         return ToDto(bankAccount, 0m);
     }
 
     public async Task<BankAccountResponseDto> UpdateAsync(int id, BankAccountUpdateDto dto)
     {
         var bankAccount = await GetOwnedAsync(id);
+        var bank = await ResolveBankAsync(dto.BankIspb);
 
         bankAccount.Name = dto.Name;
         bankAccount.InitialBalance = dto.InitialBalance;
         bankAccount.IsActive = dto.IsActive;
+        bankAccount.BankIspb = bank?.Ispb;
 
         _unitOfWork.BankAccounts.Update(bankAccount);
         await _unitOfWork.SaveChangesAsync();
 
+        bankAccount.Bank = bank;
         var delta = await GetPaidDeltaAsync(id);
         return ToDto(bankAccount, delta);
+    }
+
+    // BankIspb vem do cliente como texto livre — nunca confiar que ele corresponde a um
+    // banco real da tabela local sem checar, senão um Ispb inventado ficaria "preso" na
+    // conta sem nunca aparecer com nome/logo nenhum.
+    private async Task<Bank?> ResolveBankAsync(string? bankIspb)
+    {
+        if (string.IsNullOrWhiteSpace(bankIspb)) return null;
+
+        var bank = await _unitOfWork.Banks.GetByIspbAsync(bankIspb);
+        return bank ?? throw new NotFoundException("Banco não encontrado.");
     }
 
     public async Task DeleteAsync(int id)
@@ -86,7 +104,7 @@ public class BankAccountService : IBankAccountService
 
     private async Task<BankAccount> GetOwnedAsync(int id)
     {
-        var bankAccount = await _unitOfWork.BankAccounts.Query()
+        var bankAccount = await _unitOfWork.BankAccounts.Query().Include(b => b.Bank)
             .FirstOrDefaultAsync(b => b.Id == id && b.UserId == _currentUser.UserId);
 
         return bankAccount ?? throw new NotFoundException("Conta bancária não encontrada.");
@@ -118,5 +136,8 @@ public class BankAccountService : IBankAccountService
     }
 
     private static BankAccountResponseDto ToDto(BankAccount b, decimal paidDelta) =>
-        new(b.Id, b.Name, b.InitialBalance, b.InitialBalance + paidDelta, b.IsActive);
+        new(b.Id, b.Name, b.InitialBalance, b.InitialBalance + paidDelta, b.IsActive, ToBankDto(b.Bank));
+
+    private static BankDto? ToBankDto(Bank? bank) =>
+        bank is null ? null : new BankDto(bank.Ispb, bank.Code, bank.Name, bank.FullName, bank.LogoUrl);
 }

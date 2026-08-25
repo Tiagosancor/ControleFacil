@@ -4,6 +4,7 @@ using ControleFacil.Application.Interfaces;
 using ControleFacil.Domain.Interfaces;
 using ControleFacil.Infrastructure.Assets;
 using ControleFacil.Infrastructure.Auth;
+using ControleFacil.Infrastructure.Banks;
 using ControleFacil.Infrastructure.Data;
 using ControleFacil.Infrastructure.Email;
 using ControleFacil.Infrastructure.Repositories;
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<ILongTermGoalRepository, LongTermGoalRepository>();
         services.AddScoped<ICreditCardRepository, CreditCardRepository>();
         services.AddScoped<IUsageEventRepository, UsageEventRepository>();
+        services.AddScoped<IBankRepository, BankRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IPasswordHasher, PasswordHasherService>();
@@ -55,6 +57,12 @@ public static class DependencyInjection
             var options = sp.GetRequiredService<IOptions<BrapiOptions>>().Value;
             client.BaseAddress = new Uri("https://brapi.dev/");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
+        });
+
+        // BrasilAPI é pública, sem chave — só a BaseAddress.
+        services.AddHttpClient<IBrasilApiBankClient, BrasilApiBankClient>(client =>
+        {
+            client.BaseAddress = new Uri("https://brasilapi.com.br/");
         });
 
         return services;

@@ -9,6 +9,7 @@ public class BankAccountCreateDtoValidator : AbstractValidator<BankAccountCreate
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
         RuleFor(x => x.InitialBalance).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.BankIspb).Length(8).When(x => x.BankIspb != null);
     }
 }
 
@@ -18,5 +19,6 @@ public class BankAccountUpdateDtoValidator : AbstractValidator<BankAccountUpdate
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
         RuleFor(x => x.InitialBalance).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.BankIspb).Length(8).When(x => x.BankIspb != null);
     }
 }

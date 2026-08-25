@@ -15,5 +15,6 @@ public interface IUnitOfWork
     ILongTermGoalRepository LongTermGoals { get; }
     ICreditCardRepository CreditCards { get; }
     IUsageEventRepository UsageEvents { get; }
+    IBankRepository Banks { get; }
     Task<int> SaveChangesAsync();
 }

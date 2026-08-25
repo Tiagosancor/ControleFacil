@@ -48,6 +48,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddHostedService<DueAlertBackgroundService>();
+builder.Services.AddHostedService<BankSyncBackgroundService>();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -176,6 +177,7 @@ app.MapLongTermGoalEndpoints();
 app.MapCreditCardEndpoints();
 app.MapReportEndpoints();
 app.MapUsageEventEndpoints();
+app.MapBankEndpoints();
 
 try
 {

@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<LongTermGoal> LongTermGoals => Set<LongTermGoal>();
     public DbSet<CreditCard> CreditCards => Set<CreditCard>();
     public DbSet<UsageEvent> UsageEvents => Set<UsageEvent>();
+    public DbSet<Bank> Banks => Set<Bank>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,5 +42,6 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new LongTermGoalConfiguration());
         modelBuilder.ApplyConfiguration(new CreditCardConfiguration());
         modelBuilder.ApplyConfiguration(new UsageEventConfiguration());
+        modelBuilder.ApplyConfiguration(new BankConfiguration());
     }
 }

@@ -29,6 +29,7 @@ public static class TestUnitOfWorkFactory
             new InvestmentEntryRepository(context),
             new LongTermGoalRepository(context),
             new CreditCardRepository(context),
-            new UsageEventRepository(context));
+            new UsageEventRepository(context),
+            new BankRepository(context));
     }
 }

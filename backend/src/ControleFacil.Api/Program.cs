@@ -171,6 +171,7 @@ app.MapCategoryBudgetEndpoints();
 app.MapMonthlyGoalEndpoints();
 app.MapInvestmentCategoryEndpoints();
 app.MapInvestmentEntryEndpoints();
+app.MapAssetSearchEndpoints();
 app.MapLongTermGoalEndpoints();
 app.MapCreditCardEndpoints();
 app.MapReportEndpoints();

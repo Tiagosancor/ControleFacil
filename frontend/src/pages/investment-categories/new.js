@@ -2,9 +2,10 @@ import { useState } from 'react'
 import Router from 'next/router'
 import AppLayout from '@/components/AppLayout'
 import { investmentCategoryService } from '@/services/investmentCategoryService'
-import { INVESTMENT_GROUPS, INVESTMENT_TYPES_BY_GROUP, GROUPS_WITH_INTEREST_RATE } from '@/lib/investmentTypes'
+import { INVESTMENT_GROUPS, INVESTMENT_TYPES_BY_GROUP, GROUPS_WITH_INTEREST_RATE, BRAPI_TYPE_BY_INVESTMENT_TYPE } from '@/lib/investmentTypes'
 import FormInput from '@/components/FormInput'
 import FormSelect from '@/components/FormSelect'
+import AssetAutocomplete from '@/components/AssetAutocomplete'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 
@@ -20,6 +21,7 @@ export default function NewInvestmentCategoryPage() {
 
   const typeOptions = group ? INVESTMENT_TYPES_BY_GROUP[group] : []
   const showInterestRate = GROUPS_WITH_INTEREST_RATE.includes(group)
+  const brapiType = BRAPI_TYPE_BY_INVESTMENT_TYPE[type]
 
   const applyGroup = (g) => {
     setGroup(g)
@@ -58,14 +60,6 @@ export default function NewInvestmentCategoryPage() {
       <h1 className="text-2xl font-heading font-semibold mb-6">Nova categoria de investimento</h1>
       <Card className="max-w-lg">
         <form onSubmit={submit}>
-          <FormInput
-            label="Nome"
-            placeholder="Ex: CDB Banco Inter, Reserva de emergência"
-            value={name}
-            onChange={setName}
-            error={errors.name}
-          />
-
           <FormSelect label="Categoria" value={group} onChange={applyGroup} error={errors.group}>
             <option value="">Selecione...</option>
             {INVESTMENT_GROUPS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
@@ -75,6 +69,25 @@ export default function NewInvestmentCategoryPage() {
             <option value="">{group ? 'Selecione...' : 'Escolha uma categoria primeiro'}</option>
             {typeOptions.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </FormSelect>
+
+          {brapiType ? (
+            <AssetAutocomplete
+              label="Nome"
+              placeholder="Digite o ticker ou nome, ex: PETR4"
+              value={name}
+              onChange={setName}
+              assetType={brapiType}
+              error={errors.name}
+            />
+          ) : (
+            <FormInput
+              label="Nome"
+              placeholder="Ex: CDB Banco Inter, Reserva de emergência"
+              value={name}
+              onChange={setName}
+              error={errors.name}
+            />
+          )}
 
           <FormInput
             label="Valor aplicado"

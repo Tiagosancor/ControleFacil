@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using ControleFacil.Application;
 using ControleFacil.Application.Interfaces;
 using ControleFacil.Domain.Interfaces;
+using ControleFacil.Infrastructure.Assets;
 using ControleFacil.Infrastructure.Auth;
 using ControleFacil.Infrastructure.Data;
 using ControleFacil.Infrastructure.Email;
@@ -44,6 +45,15 @@ public static class DependencyInjection
         {
             var options = sp.GetRequiredService<IOptions<ResendOptions>>().Value;
             client.BaseAddress = new Uri("https://api.resend.com/");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
+        });
+
+        services.AddMemoryCache();
+        services.Configure<BrapiOptions>(configuration.GetSection("Brapi"));
+        services.AddHttpClient<IAssetSearchService, BrapiAssetSearchService>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<BrapiOptions>>().Value;
+            client.BaseAddress = new Uri("https://brapi.dev/");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
         });
 

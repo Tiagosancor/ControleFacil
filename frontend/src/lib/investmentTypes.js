@@ -49,6 +49,13 @@ export const INVESTMENT_TYPES_BY_GROUP = {
 
 export const GROUPS_WITH_INTEREST_RATE = ['RendaFixa', 'PrevidenciaPrivada']
 
+// Tipos com busca de ativo real via brapi.dev (autocomplete de ticker) — os demais
+// continuam com campo de nome livre.
+export const BRAPI_TYPE_BY_INVESTMENT_TYPE = {
+  Acoes: 'stock',
+  FII: 'fund',
+}
+
 export function groupOfType(type) {
   for (const [group, types] of Object.entries(INVESTMENT_TYPES_BY_GROUP)) {
     if (types.some(t => t.value === type)) return group

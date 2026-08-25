@@ -10,6 +10,19 @@ function formatCurrency(value) {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
+function BankBadge({ bank }) {
+  if (!bank) return null
+  return (
+    <p className="text-xs text-text-secondary mt-1 flex items-center gap-1.5">
+      {bank.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={bank.logoUrl} alt="" className="h-3.5 w-3.5 rounded-full object-contain" onError={e => { e.target.style.display = 'none' }} />
+      ) : null}
+      {bank.name}
+    </p>
+  )
+}
+
 export default function BankAccountsPage() {
   const [items, setItems] = useState([])
   const [includeInactive, setIncludeInactive] = useState(false)
@@ -63,7 +76,10 @@ export default function BankAccountsPage() {
               <tbody>
                 {items.map(account => (
                   <tr key={account.id} className="border-b border-border hover:bg-background">
-                    <td className="p-3">{account.name}</td>
+                    <td className="p-3">
+                      {account.name}
+                      <BankBadge bank={account.bank} />
+                    </td>
                     <td className="p-3">{formatCurrency(account.initialBalance)}</td>
                     <td className="p-3 font-medium">{formatCurrency(account.currentBalance)}</td>
                     <td className="p-3">{account.isActive ? 'Ativa' : 'Inativa'}</td>
@@ -84,6 +100,7 @@ export default function BankAccountsPage() {
                     <p className="font-medium truncate">{account.name}</p>
                     <p className="font-medium shrink-0">{formatCurrency(account.currentBalance)}</p>
                   </div>
+                  <BankBadge bank={account.bank} />
                   <p className="text-xs text-text-secondary mt-1">Saldo inicial: {formatCurrency(account.initialBalance)}</p>
                   {!account.isActive && <p className="text-xs text-text-muted mt-1">Inativa</p>}
                 </Card>

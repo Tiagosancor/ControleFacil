@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import AppLayout from '@/components/AppLayout'
 import { bankAccountService } from '@/services/bankAccountService'
 import FormInput from '@/components/FormInput'
+import BankPicker from '@/components/BankPicker'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import Skeleton from '@/components/ui/Skeleton'
@@ -18,6 +19,7 @@ export default function EditBankAccountPage() {
   const [name, setName] = useState('')
   const [initialBalance, setInitialBalance] = useState('0')
   const [currentBalance, setCurrentBalance] = useState(0)
+  const [bank, setBank] = useState(null)
   const [isActive, setIsActive] = useState(true)
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(true)
@@ -29,6 +31,7 @@ export default function EditBankAccountPage() {
       setName(res.data.name)
       setInitialBalance(String(res.data.initialBalance))
       setCurrentBalance(res.data.currentBalance)
+      setBank(res.data.bank)
       setIsActive(res.data.isActive)
       setLoading(false)
     }).catch(() => {
@@ -43,7 +46,7 @@ export default function EditBankAccountPage() {
 
     setSubmitting(true)
     try {
-      await bankAccountService.update(id, { name, initialBalance: Number(initialBalance), isActive })
+      await bankAccountService.update(id, { name, initialBalance: Number(initialBalance), isActive, bankIspb: bank?.ispb || null })
       router.push('/bank-accounts')
     } catch (err) {
       setErrors({ form: err?.response?.data?.error || 'Falha ao salvar conta bancária' })
@@ -83,6 +86,7 @@ export default function EditBankAccountPage() {
       <Card className="max-w-lg">
         <form onSubmit={submit}>
           <FormInput label="Nome" value={name} onChange={setName} error={errors.name} />
+          <BankPicker value={bank} onChange={setBank} />
           <div className="bg-background border border-border rounded-md px-3 py-2 mb-4">
             <p className="text-xs text-text-secondary">Saldo atual (inicial + lançamentos pagos)</p>
             <p className="font-medium">{formatCurrency(currentBalance)}</p>

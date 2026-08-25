@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import AppLayout from '@/components/AppLayout'
 import { investmentEntryService } from '@/services/investmentEntryService'
 import { investmentCategoryService } from '@/services/investmentCategoryService'
+import { INVESTMENT_GROUPS, groupOfType } from '@/lib/investmentTypes'
 import FormInput from '@/components/FormInput'
 import FormSelect from '@/components/FormSelect'
 import Button from '@/components/ui/Button'
@@ -14,11 +15,14 @@ const MONTHS = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 
+const UNCLASSIFIED = '_unclassified'
+
 export default function EditInvestmentEntryPage() {
   const router = useRouter()
   const { id } = router.query
 
   const [categories, setCategories] = useState([])
+  const [group, setGroup] = useState('')
   const [investmentCategoryId, setInvestmentCategoryId] = useState('')
   const [year, setYear] = useState('')
   const [month, setMonth] = useState('')
@@ -29,17 +33,45 @@ export default function EditInvestmentEntryPage() {
 
   const now = new Date()
 
+  const groupsWithCategories = useMemo(() => {
+    const map = {}
+    categories.forEach(c => {
+      const g = c.type ? groupOfType(c.type) : UNCLASSIFIED
+      if (!map[g]) map[g] = []
+      map[g].push(c)
+    })
+    return map
+  }, [categories])
+
+  const groupOptions = useMemo(() => {
+    const opts = INVESTMENT_GROUPS.filter(g => groupsWithCategories[g.value]?.length)
+    if (groupsWithCategories[UNCLASSIFIED]?.length) opts.push({ value: UNCLASSIFIED, label: 'Não classificado' })
+    return opts
+  }, [groupsWithCategories])
+
+  const categoryOptions = group ? (groupsWithCategories[group] || []) : []
+
+  const applyGroup = (g) => {
+    setGroup(g)
+    const first = groupsWithCategories[g]?.[0]
+    setInvestmentCategoryId(first ? String(first.id) : '')
+  }
+
   useEffect(() => {
     if (!id) return
     Promise.all([
       investmentEntryService.getById(id),
       investmentCategoryService.list({ includeInactive: true }),
     ]).then(([entryRes, categoriesRes]) => {
-      setInvestmentCategoryId(String(entryRes.data.investmentCategoryId))
       setYear(String(entryRes.data.year))
       setMonth(String(entryRes.data.month))
       setValue(String(entryRes.data.value))
       setCategories(categoriesRes.data)
+
+      const currentCategory = categoriesRes.data.find(c => c.id === entryRes.data.investmentCategoryId)
+      setGroup(currentCategory?.type ? groupOfType(currentCategory.type) : UNCLASSIFIED)
+      setInvestmentCategoryId(String(entryRes.data.investmentCategoryId))
+
       setLoading(false)
     }).catch(() => {
       alert('Lançamento não encontrado')
@@ -100,8 +132,12 @@ export default function EditInvestmentEntryPage() {
       <h1 className="text-2xl font-heading font-semibold mb-6">Editar lançamento</h1>
       <Card className="max-w-lg">
         <form onSubmit={submit}>
-          <FormSelect label="Categoria" value={investmentCategoryId} onChange={setInvestmentCategoryId} error={errors.investmentCategoryId}>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          <FormSelect label="Categoria" value={group} onChange={applyGroup}>
+            {groupOptions.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+          </FormSelect>
+
+          <FormSelect label="Investimento" value={investmentCategoryId} onChange={setInvestmentCategoryId} error={errors.investmentCategoryId}>
+            {categoryOptions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </FormSelect>
 
           <div className="grid grid-cols-2 gap-4">

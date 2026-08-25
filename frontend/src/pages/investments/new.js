@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Router from 'next/router'
 import Link from 'next/link'
 import AppLayout from '@/components/AppLayout'
 import { investmentEntryService } from '@/services/investmentEntryService'
 import { investmentCategoryService } from '@/services/investmentCategoryService'
+import { INVESTMENT_GROUPS, groupOfType } from '@/lib/investmentTypes'
 import FormInput from '@/components/FormInput'
 import FormSelect from '@/components/FormSelect'
 import Button from '@/components/ui/Button'
@@ -14,9 +15,12 @@ const MONTHS = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 
+const UNCLASSIFIED = '_unclassified'
+
 export default function NewInvestmentEntryPage() {
   const now = new Date()
   const [categories, setCategories] = useState([])
+  const [group, setGroup] = useState('')
   const [investmentCategoryId, setInvestmentCategoryId] = useState('')
   const [year, setYear] = useState(String(now.getFullYear()))
   const [month, setMonth] = useState(String(now.getMonth() + 1))
@@ -24,10 +28,42 @@ export default function NewInvestmentEntryPage() {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
+  // Passo 1 (Categoria) -> Passo 2 (o investimento específico dentro dela) — antes disso
+  // era um único dropdown com todas as categorias juntas, misturando Renda Fixa com
+  // Renda Variável etc. sem nenhuma organização.
+  const groupsWithCategories = useMemo(() => {
+    const map = {}
+    categories.forEach(c => {
+      const g = c.type ? groupOfType(c.type) : UNCLASSIFIED
+      if (!map[g]) map[g] = []
+      map[g].push(c)
+    })
+    return map
+  }, [categories])
+
+  const groupOptions = useMemo(() => {
+    const opts = INVESTMENT_GROUPS.filter(g => groupsWithCategories[g.value]?.length)
+    if (groupsWithCategories[UNCLASSIFIED]?.length) opts.push({ value: UNCLASSIFIED, label: 'Não classificado' })
+    return opts
+  }, [groupsWithCategories])
+
+  const categoryOptions = group ? (groupsWithCategories[group] || []) : []
+
+  const applyGroup = (g) => {
+    setGroup(g)
+    const first = groupsWithCategories[g]?.[0]
+    setInvestmentCategoryId(first ? String(first.id) : '')
+  }
+
   useEffect(() => {
     investmentCategoryService.list({ includeInactive: false }).then(res => {
       setCategories(res.data)
-      if (res.data.length) setInvestmentCategoryId(String(res.data[0].id))
+      if (res.data.length) {
+        const first = res.data[0]
+        const firstGroup = first.type ? groupOfType(first.type) : UNCLASSIFIED
+        setGroup(firstGroup)
+        setInvestmentCategoryId(String(first.id))
+      }
     })
   }, [])
 
@@ -66,9 +102,15 @@ export default function NewInvestmentEntryPage() {
               <Link href="/investment-categories/new" className="text-link">categoria</Link> primeiro.
             </p>
           ) : (
-            <FormSelect label="Categoria" value={investmentCategoryId} onChange={setInvestmentCategoryId} error={errors.investmentCategoryId}>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </FormSelect>
+            <>
+              <FormSelect label="Categoria" value={group} onChange={applyGroup}>
+                {groupOptions.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+              </FormSelect>
+
+              <FormSelect label="Investimento" value={investmentCategoryId} onChange={setInvestmentCategoryId} error={errors.investmentCategoryId}>
+                {categoryOptions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </FormSelect>
+            </>
           )}
 
           <div className="grid grid-cols-2 gap-4">

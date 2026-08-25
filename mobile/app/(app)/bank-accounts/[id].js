@@ -3,6 +3,7 @@ import { Alert, ScrollView, Switch, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { bankAccountService } from '@/services/bankAccountService';
 import FormInput from '@/components/FormInput';
+import BankPicker from '@/components/BankPicker';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
@@ -17,6 +18,7 @@ export default function EditBankAccountScreen() {
   const [name, setName] = useState('');
   const [initialBalance, setInitialBalance] = useState('0');
   const [currentBalance, setCurrentBalance] = useState(0);
+  const [bank, setBank] = useState(null);
   const [isActive, setIsActive] = useState(true);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
@@ -28,6 +30,7 @@ export default function EditBankAccountScreen() {
       setName(res.data.name);
       setInitialBalance(String(res.data.initialBalance));
       setCurrentBalance(res.data.currentBalance);
+      setBank(res.data.bank);
       setIsActive(res.data.isActive);
       setLoading(false);
     }).catch(() => {
@@ -41,7 +44,7 @@ export default function EditBankAccountScreen() {
 
     setSubmitting(true);
     try {
-      await bankAccountService.update(id, { name, initialBalance: Number(initialBalance) || 0, isActive });
+      await bankAccountService.update(id, { name, initialBalance: Number(initialBalance) || 0, isActive, bankIspb: bank?.ispb || null });
       router.back();
     } catch (err) {
       setErrors({ form: err?.response?.data?.error || 'Falha ao salvar conta bancária' });
@@ -80,6 +83,7 @@ export default function EditBankAccountScreen() {
     >
       <Card>
         <FormInput label="Nome" value={name} onChangeText={setName} error={errors.name} />
+        <BankPicker value={bank} onChange={setBank} />
         <View className="bg-background border border-border rounded-md px-3 py-2 mb-4">
           <Text className="text-xs text-text-secondary">Saldo atual (inicial + lançamentos pagos)</Text>
           <Text className="text-text-primary font-medium">{formatCurrency(currentBalance)}</Text>

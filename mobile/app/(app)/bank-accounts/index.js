@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, Switch, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, Switch, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { bankAccountService } from '@/services/bankAccountService';
 import Button from '@/components/ui/Button';
@@ -7,6 +7,18 @@ import Card from '@/components/ui/Card';
 
 function formatCurrency(value) {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function BankBadge({ bank }) {
+  if (!bank) return null;
+  return (
+    <View className="flex-row items-center gap-1.5 mt-1">
+      {bank.logoUrl && (
+        <Image source={{ uri: bank.logoUrl }} style={{ height: 14, width: 14, borderRadius: 7 }} resizeMode="contain" />
+      )}
+      <Text className="text-text-secondary text-xs">{bank.name}</Text>
+    </View>
+  );
 }
 
 export default function BankAccountsScreen() {
@@ -58,6 +70,7 @@ export default function BankAccountsScreen() {
                 <Text className="text-text-primary font-medium">{item.name}</Text>
                 <Text className="text-text-primary font-medium">{formatCurrency(item.currentBalance)}</Text>
               </View>
+              <BankBadge bank={item.bank} />
               <Text className="text-text-secondary text-xs mt-1">Saldo inicial: {formatCurrency(item.initialBalance)}</Text>
               {!item.isActive && <Text className="text-text-muted text-xs mt-1">Inativa</Text>}
             </Card>

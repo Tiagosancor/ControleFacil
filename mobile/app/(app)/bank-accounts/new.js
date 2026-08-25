@@ -3,6 +3,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { bankAccountService } from '@/services/bankAccountService';
 import FormInput from '@/components/FormInput';
+import BankPicker from '@/components/BankPicker';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
@@ -10,6 +11,7 @@ export default function NewBankAccountScreen() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [initialBalance, setInitialBalance] = useState('0');
+  const [bank, setBank] = useState(null);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -18,7 +20,7 @@ export default function NewBankAccountScreen() {
 
     setSubmitting(true);
     try {
-      await bankAccountService.create({ name, initialBalance: Number(initialBalance) || 0 });
+      await bankAccountService.create({ name, initialBalance: Number(initialBalance) || 0, bankIspb: bank?.ispb || null });
       router.back();
     } catch (err) {
       setErrors({ form: err?.response?.data?.error || 'Falha ao criar conta bancária' });
@@ -34,7 +36,8 @@ export default function NewBankAccountScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <Card>
-        <FormInput label="Nome" value={name} onChangeText={setName} error={errors.name} />
+        <FormInput label="Nome" value={name} onChangeText={setName} error={errors.name} placeholder="Ex: Conta salário, Caixinha" />
+        <BankPicker value={bank} onChange={setBank} />
         <FormInput
           label="Saldo inicial"
           value={initialBalance}

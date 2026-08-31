@@ -48,7 +48,18 @@ public class ResendEmailService : IEmailService
             """);
     }
 
-    private async Task SendAsync(string toEmail, string subject, string html)
+    public async Task SendContactMessageEmailAsync(string name, string email, string message)
+    {
+        var encodedMessage = System.Net.WebUtility.HtmlEncode(message).Replace("\n", "<br>");
+        await SendAsync(_options.ContactRecipientEmail, "Nova mensagem de contato - Semeia Grana", $"""
+            <p><strong>Nome:</strong> {System.Net.WebUtility.HtmlEncode(name)}</p>
+            <p><strong>E-mail:</strong> {System.Net.WebUtility.HtmlEncode(email)}</p>
+            <p><strong>Mensagem:</strong></p>
+            <p>{encodedMessage}</p>
+            """, replyTo: email);
+    }
+
+    private async Task SendAsync(string toEmail, string subject, string html, string? replyTo = null)
     {
         var payload = new
         {
@@ -56,6 +67,7 @@ public class ResendEmailService : IEmailService
             to = new[] { toEmail },
             subject,
             html,
+            reply_to = replyTo,
         };
 
         var response = await _httpClient.PostAsJsonAsync("emails", payload);

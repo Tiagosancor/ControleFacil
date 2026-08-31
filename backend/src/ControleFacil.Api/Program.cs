@@ -143,6 +143,12 @@ builder.Services.AddRateLimiter(options =>
         limiterOptions.Window = TimeSpan.FromMinutes(1);
         limiterOptions.QueueLimit = 0;
     });
+    options.AddFixedWindowLimiter("contact", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueLimit = 0;
+    });
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
@@ -178,6 +184,7 @@ app.MapCreditCardEndpoints();
 app.MapReportEndpoints();
 app.MapUsageEventEndpoints();
 app.MapBankEndpoints();
+app.MapContactEndpoints();
 
 try
 {

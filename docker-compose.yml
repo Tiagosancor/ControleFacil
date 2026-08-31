@@ -32,6 +32,7 @@ services:
       Jwt__Audience: ${JWT_AUDIENCE:-ControleFacilUsers}
       Cors__AllowedOrigins__0: ${CORS_ALLOWED_ORIGIN:-http://localhost:3000}
       Resend__ApiKey: ${RESEND_API_KEY:-}
+      Resend__ContactRecipientEmail: ${RESEND_CONTACT_RECIPIENT_EMAIL:-}
     ports:
       - "5080:8080"
 

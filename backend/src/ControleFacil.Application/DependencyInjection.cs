@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IValidator<LongTermGoalUpdateDto>, LongTermGoalUpdateDtoValidator>();
         services.AddScoped<IValidator<CreditCardCreateDto>, CreditCardCreateDtoValidator>();
         services.AddScoped<IValidator<CreditCardUpdateDto>, CreditCardUpdateDtoValidator>();
+        services.AddScoped<IValidator<ContactDto>, ContactDtoValidator>();
 
         return services;
     }

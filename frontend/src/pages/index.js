@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import AppLayout from '@/components/AppLayout'
+import LandingPage from '@/components/LandingPage'
 import Card from '@/components/ui/Card'
+import Spinner from '@/components/ui/Spinner'
 
 function DashboardIcon(props) {
   return (
@@ -63,22 +65,31 @@ function ShortcutCard({ href, label, description, Icon }) {
 }
 
 export default function HomePage() {
-  // AppLayout já cuida do spinner de "verificando autenticação" e do redirect pra
-  // /login quando não há usuário — aqui só evitamos usar user.name antes dele existir.
-  const { user } = useAuth()
+  // Sprint Web-1: "/" mostra a landing pública pra quem não está logado — a Home
+  // hub abaixo (Sprint 15) continua igual pra quem já tem sessão. AppLayout não
+  // pode ser usado aqui pro caso deslogado porque ele redireciona pra /login.
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-sm text-text-secondary">
+        <Spinner className="h-5 w-5" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <LandingPage />
+  }
 
   return (
     <AppLayout>
-      {user && (
-        <>
-          <h1 className="text-3xl font-heading font-semibold mb-1">Olá, {user.name}</h1>
-          <p className="text-text-secondary mb-8">O que você quer fazer agora?</p>
+      <h1 className="text-3xl font-heading font-semibold mb-1">Olá, {user.name}</h1>
+      <p className="text-text-secondary mb-8">O que você quer fazer agora?</p>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {SHORTCUTS.map(shortcut => <ShortcutCard key={shortcut.href} {...shortcut} />)}
-          </div>
-        </>
-      )}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {SHORTCUTS.map(shortcut => <ShortcutCard key={shortcut.href} {...shortcut} />)}
+      </div>
     </AppLayout>
   )
 }
